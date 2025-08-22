@@ -55,18 +55,14 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 // Connect to MongoDB
 connectDB();
 
-// Trust reverse proxy (Railway/other PaaS)
-app.set("trust proxy", 1);
-
-// CORS configuration using environment variables
-// FRONTEND_URL, ADMIN_URL may be set in hosting env
+// CORS configuration to allow both frontends
 const allowedOrigins = [
+  "http://localhost:3000", // Main frontend
+  "http://localhost:3001", // Admin frontend
+  "http://localhost:5173", // Vite dev server
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:5173",
-].filter(Boolean);
+].filter(Boolean); // Remove undefined values
 
 const corsOptions = {
   origin: (origin, callback) => {
