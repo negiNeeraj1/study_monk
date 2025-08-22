@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Search, Download, Star, Crown, BookOpen, Filter } from 'lucide-react';
 import Card from '../Components/ui/Card';
 import PremiumNotes from "../images/PreiumNotes.jpg"
-import SubjectBundle from "../images/subjectBundle.jpg"
 import FullPackage from "../images/FullPackage.jpg"
 
 // Import study material components
