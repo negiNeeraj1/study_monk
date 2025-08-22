@@ -103,6 +103,18 @@ app.get("/", (req, res) => {
     docs: "/api/health",
   });
 });
+
+// Health check route for Render
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: "ok",
+    message: "StudyAI Backend Server is running",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    environment: process.env.NODE_ENV || "development",
+  });
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/study-materials", studyMaterialRoutes);
