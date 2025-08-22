@@ -55,13 +55,28 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 // Connect to MongoDB
 connectDB();
 
-// CORS configuration to allow both frontends
+// Trust reverse proxy (Railway/other PaaS)
+app.set("trust proxy", 1);
+
+// CORS configuration using environment variables
+// FRONTEND_URL, ADMIN_URL may be set in hosting env
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:5173",
+].filter(Boolean);
+
 const corsOptions = {
-  origin: [
-    "http://localhost:3000", // Main frontend
-    "http://localhost:3001", // Admin frontend
-    "http://localhost:5173", // Vite dev server (if used)
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser clients
+    if (process.env.ALLOW_ALL_ORIGINS === "true") return callback(null, true);
+    const isAllowed = allowedOrigins.includes(origin);
+    return isAllowed
+      ? callback(null, true)
+      : callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
 };
@@ -84,6 +99,14 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Routes
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "StudyAI Backend is running",
+    health: "ok",
+    docs: "/api/health",
+  });
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/study-materials", studyMaterialRoutes);
