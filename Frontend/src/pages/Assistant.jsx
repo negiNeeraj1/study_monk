@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../services/api";
 import {
   Send,
   Bot,
@@ -27,11 +28,11 @@ const TypingIndicator = () => (
           scale: [1, 1.3, 1],
           opacity: [0.4, 1, 0.4],
         }}
-        transition={{ 
-          repeat: Infinity, 
-          duration: 1.2, 
+        transition={{
+          repeat: Infinity,
+          duration: 1.2,
           delay,
-          ease: "easeInOut"
+          ease: "easeInOut",
         }}
         className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full shadow-sm"
       />
@@ -47,34 +48,35 @@ const WelcomeMessage = () => (
     className="text-center py-12 px-6"
   >
     <motion.div
-      animate={{ 
+      animate={{
         rotate: [0, 10, -10, 0],
-        scale: [1, 1.1, 1]
+        scale: [1, 1.1, 1],
       }}
-      transition={{ 
-        duration: 3, 
+      transition={{
+        duration: 3,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut",
       }}
       className="mb-6"
     >
       <Bot className="w-16 h-16 mx-auto text-blue-500 drop-shadow-lg" />
     </motion.div>
-    
+
     <h3 className="text-2xl font-bold text-gray-800 mb-4">
       Welcome to your AI Study Assistant! 🎓
     </h3>
-    
+
     <p className="text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
-      I'm here to help you with your studies. Ask me anything about exam preparation, 
-      study techniques, or any academic topic you'd like to explore!
+      I'm here to help you with your studies. Ask me anything about exam
+      preparation, study techniques, or any academic topic you'd like to
+      explore!
     </p>
-    
+
     <div className="flex flex-wrap justify-center gap-3">
       {[
         { icon: <Brain className="w-4 h-4" />, text: "Smart Learning" },
         { icon: <Sparkles className="w-4 h-4" />, text: "Instant Help" },
-        { icon: <Zap className="w-4 h-4" />, text: "Quick Answers" }
+        { icon: <Zap className="w-4 h-4" />, text: "Quick Answers" },
       ].map((feature, index) => (
         <motion.div
           key={index}
@@ -104,40 +106,40 @@ const Assistant = () => {
     {
       text: "How do I prepare for exams effectively?",
       icon: <Brain className="w-4 h-4" />,
-      category: "Study Tips"
+      category: "Study Tips",
     },
     {
       text: "What are the best study techniques for retention?",
       icon: <Book className="w-4 h-4" />,
-      category: "Learning"
+      category: "Learning",
     },
     {
       text: "Can you explain complex topics simply?",
       icon: <Sparkles className="w-4 h-4" />,
-      category: "Understanding"
+      category: "Understanding",
     },
-    { 
-      text: "How to manage study time efficiently?", 
+    {
+      text: "How to manage study time efficiently?",
       icon: <Clock className="w-4 h-4" />,
-      category: "Time Management"
+      category: "Time Management",
     },
     {
       text: "Help me with programming concepts",
       icon: <Zap className="w-4 h-4" />,
-      category: "Programming"
+      category: "Programming",
     },
     {
       text: "Create a study schedule for me",
       icon: <Settings className="w-4 h-4" />,
-      category: "Planning"
-    }
+      category: "Planning",
+    },
   ];
 
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
         top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [messages, isTyping]);
@@ -152,34 +154,28 @@ const Assistant = () => {
 
     const userMessage = { text: input, sender: "user", timestamp: new Date() };
     setMessages((prev) => [...prev, userMessage]);
-    setMessageCount(prev => prev + 1);
+    setMessageCount((prev) => prev + 1);
     setInput("");
     setIsTyping(true);
     setIsStreaming(false);
     setSelectedFAQ(null);
 
     try {
-      const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
-      });
+      const response = await api.post("/ai/chat", { message: input });
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (response.ok && data.response) {
+      if (response.status === 200 && data.response) {
         setIsTyping(false);
         setIsStreaming(true);
 
         const aiMessage = {
           text: data.response,
           sender: "ai",
-          timestamp: new Date()
+          timestamp: new Date(),
         };
         setMessages((prev) => [...prev, aiMessage]);
 
         // REMOVED: The problematic setTimeout - now handled by onStreamingComplete
-
       } else {
         throw new Error(data.error || "Failed to get response");
       }
@@ -189,7 +185,7 @@ const Assistant = () => {
         text: "I'm having trouble connecting right now. Please check your connection and try again! 🔄",
         sender: "ai",
         timestamp: new Date(),
-        isError: true
+        isError: true,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -217,9 +213,10 @@ const Assistant = () => {
         transition={{ duration: 0.8 }}
         className="hidden lg:block w-2/5 xl:w-1/3 relative"
       >
-        <div className="h-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 
-                        rounded-xl overflow-hidden shadow-2xl border border-white/50">
-          
+        <div
+          className="h-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 
+                        rounded-xl overflow-hidden shadow-2xl border border-white/50"
+        >
           {/* Floating particles background */}
           <div className="absolute inset-0 overflow-hidden">
             {[...Array(20)].map((_, i) => (
@@ -229,16 +226,16 @@ const Assistant = () => {
                 animate={{
                   x: [0, 100, 0],
                   y: [0, -100, 0],
-                  opacity: [0, 1, 0]
+                  opacity: [0, 1, 0],
                 }}
                 transition={{
                   duration: Math.random() * 10 + 5,
                   repeat: Infinity,
-                  delay: Math.random() * 2
+                  delay: Math.random() * 2,
                 }}
                 style={{
                   left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`
+                  top: `${Math.random() * 100}%`,
                 }}
               />
             ))}
@@ -249,7 +246,7 @@ const Assistant = () => {
               animate={{
                 scale: [1, 1.05, 1],
                 rotate: [0, 2, -2, 0],
-                y: [0, -10, 0]
+                y: [0, -10, 0],
               }}
               transition={{
                 duration: 6,
@@ -260,14 +257,16 @@ const Assistant = () => {
             >
               <div className="relative">
                 <img
-                  src={image} 
+                  src={image}
                   alt="AI Assistant"
                   className="w-72 h-72 xl:w-80 xl:h-80 drop-shadow-2xl filter brightness-110"
                 />
-                
+
                 {/* Glowing effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 
-                               rounded-full blur-xl -z-10 animate-pulse" />
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 
+                               rounded-full blur-xl -z-10 animate-pulse"
+                />
               </div>
             </motion.div>
 
@@ -277,8 +276,10 @@ const Assistant = () => {
               transition={{ delay: 0.5 }}
               className="text-center"
             >
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 
-                           bg-clip-text text-transparent mb-2">
+              <h3
+                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 
+                           bg-clip-text text-transparent mb-2"
+              >
                 Your AI Study Companion
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed max-w-xs">
@@ -298,9 +299,10 @@ const Assistant = () => {
                    shadow-2xl border border-white/50 ml-0 lg:ml-4"
       >
         {/* Enhanced Chat Header */}
-        <div className="p-4 md:p-6 border-b bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
-                        rounded-t-xl relative overflow-hidden">
-          
+        <div
+          className="p-4 md:p-6 border-b bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
+                        rounded-t-xl relative overflow-hidden"
+        >
           {/* Animated background elements */}
           <div className="absolute inset-0 opacity-20">
             <motion.div
@@ -332,13 +334,15 @@ const Assistant = () => {
                 <Bot className="w-8 h-8 text-white drop-shadow-lg" />
                 <div className="absolute inset-0 bg-white/30 rounded-full blur animate-ping" />
               </motion.div>
-              
+
               <div>
                 <h2 className="text-xl md:text-2xl font-bold text-white drop-shadow-sm">
                   AI Study Assistant
                 </h2>
                 <p className="text-blue-100 text-sm">
-                  {messageCount > 0 ? `${messageCount} messages exchanged` : "Ready to help you learn"}
+                  {messageCount > 0
+                    ? `${messageCount} messages exchanged`
+                    : "Ready to help you learn"}
                 </p>
               </div>
             </div>
@@ -356,7 +360,7 @@ const Assistant = () => {
                   <X className="w-5 h-5" />
                 </motion.button>
               )}
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -408,7 +412,7 @@ const Assistant = () => {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {faqQuestions.map((question, index) => (
                     <motion.button
@@ -416,9 +420,9 @@ const Assistant = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      whileHover={{ 
+                      whileHover={{
                         scale: 1.02,
-                        boxShadow: "0 8px 25px rgba(0,0,0,0.1)"
+                        boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
                       }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleFAQClick(question)}
@@ -427,21 +431,27 @@ const Assistant = () => {
                         transform transition-all duration-300
                         group relative overflow-hidden"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 
-                                    opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
+                      <div
+                        className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 
+                                    opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      />
+
                       <div className="relative z-10 flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 
+                        <div
+                          className="p-2 rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 
                                       group-hover:from-blue-200 group-hover:to-indigo-200 
-                                      transition-all duration-300 mt-0.5">
+                                      transition-all duration-300 mt-0.5"
+                        >
                           {question.icon}
                         </div>
                         <div className="flex-1">
                           <div className="text-xs text-blue-600 font-medium mb-1 opacity-75">
                             {question.category}
                           </div>
-                          <span className="text-gray-700 group-hover:text-gray-900 
-                                         transition-colors duration-300 font-medium text-sm leading-relaxed">
+                          <span
+                            className="text-gray-700 group-hover:text-gray-900 
+                                         transition-colors duration-300 font-medium text-sm leading-relaxed"
+                          >
                             {question.text}
                           </span>
                         </div>
@@ -483,33 +493,42 @@ const Assistant = () => {
                       animate={{ scale: 1, x: 0 }}
                       className="max-w-[85%] md:max-w-[75%] relative group"
                     >
-                      <div className="p-4 rounded-2xl shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 
+                      <div
+                        className="p-4 rounded-2xl shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 
                                     text-white transform hover:scale-[1.02] transition-all duration-300
-                                    relative overflow-hidden">
-                        
+                                    relative overflow-hidden"
+                      >
                         {/* Message background effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 
-                                      opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        
-                        <div className="relative z-10">
-                          {message.text}
-                        </div>
+                        <div
+                          className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 
+                                      opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        />
+
+                        <div className="relative z-10">{message.text}</div>
                       </div>
-                      
+
                       <div className="text-xs text-gray-500 mt-1 text-right opacity-70">
-                        {message.timestamp?.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {message.timestamp?.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </div>
                     </motion.div>
                   ) : (
                     <div className="max-w-[85%] md:max-w-[75%]">
                       <StreamingMessage
                         text={message.text}
-                        isStreaming={index === messages.length - 1 && isStreaming}
+                        isStreaming={
+                          index === messages.length - 1 && isStreaming
+                        }
                         isError={message.isError}
                         onStreamingComplete={handleStreamingComplete}
                       />
                       <div className="text-xs text-gray-500 mt-1 opacity-70">
-                        {message.timestamp?.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {message.timestamp?.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </div>
                     </div>
                   )}
@@ -517,7 +536,7 @@ const Assistant = () => {
               ))}
             </AnimatePresence>
           )}
-          
+
           {isTyping && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -525,8 +544,10 @@ const Assistant = () => {
               exit={{ opacity: 0, y: -20 }}
               className="flex justify-start"
             >
-              <div className="bg-gradient-to-r from-gray-100 to-blue-50 rounded-2xl 
-                            shadow-lg border border-gray-200/50">
+              <div
+                className="bg-gradient-to-r from-gray-100 to-blue-50 rounded-2xl 
+                            shadow-lg border border-gray-200/50"
+              >
                 <TypingIndicator />
               </div>
             </motion.div>
@@ -543,7 +564,9 @@ const Assistant = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && !e.shiftKey && handleSend()
+                }
                 placeholder="Ask me anything about your studies..."
                 disabled={isTyping}
                 maxLength={500}
@@ -555,7 +578,7 @@ const Assistant = () => {
                   disabled:opacity-50 disabled:cursor-not-allowed
                   text-gray-800 font-medium resize-none"
               />
-              
+
               {/* Character counter */}
               <div className="absolute bottom-2 right-12 text-xs text-gray-400">
                 {input.length}/500
@@ -598,13 +621,15 @@ const Assistant = () => {
               )}
             </motion.button>
           </div>
-          
+
           {/* Quick actions */}
           <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
             <div className="flex items-center gap-4">
               <span>Press Enter to send</span>
               {messages.length > 0 && (
-                <span className="text-blue-600">{messages.length} messages</span>
+                <span className="text-blue-600">
+                  {messages.length} messages
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../services/api";
 import QuizLevelCard from "../Components/quiz/QuizLevelCard";
 import QuizQuestion from "../Components/quiz/QuizQuestion";
 import QuizList from "../Components/quiz/QuizList";
@@ -105,17 +106,13 @@ const Quizzes = () => {
           : 4;
       const totalTime = config.questionCount.value * timePerQuestion * 60; // in seconds
 
-      const res = await fetch("/api/ai/generate-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: config.subject.name,
-          level: config.difficulty.name,
-          count: config.questionCount.value,
-        }),
+      const res = await api.post("/ai/generate-quiz", {
+        topic: config.subject.name,
+        level: config.difficulty.name,
+        count: config.questionCount.value,
       });
 
-      const data = await res.json();
+      const data = res.data;
       if (data.quiz && Array.isArray(data.quiz)) {
         console.log("Quiz data received:", data.quiz);
 

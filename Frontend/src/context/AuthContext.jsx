@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import api from "../services/api";
 
 const AuthContext = createContext();
 
@@ -21,38 +22,41 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signup = async (name, email, password) => {
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
-    if (res.ok) {
+    try {
+      const res = await api.post("/auth/signup", { name, email, password });
+      const data = res.data;
+
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
       return { success: true };
-    } else {
-      return { success: false, error: data.error };
+    } catch (error) {
+      console.error("Signup error:", error);
+      return {
+        success: false,
+        error:
+          error.response?.data?.error || "Signup failed. Please try again.",
+      };
     }
   };
 
   const login = async (email, password) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (res.ok) {
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      const data = res.data;
+
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("token", data.token);
       return { success: true };
-    } else {
-      return { success: false, error: data.error };
+    } catch (error) {
+      console.error("Login error:", error);
+      return {
+        success: false,
+        error: error.response?.data?.error || "Login failed. Please try again.",
+      };
     }
   };
 

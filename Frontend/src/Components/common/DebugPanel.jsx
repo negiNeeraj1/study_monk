@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import api from "../../services/api";
 
 /**
  * Debug Panel component for development mode only
@@ -91,11 +92,12 @@ const DebugPanel = () => {
   const testApiConnection = () => {
     console.log("Testing API connection...");
 
-    fetch("/api/health")
+    api
+      .get("/health")
       .then((response) => {
-        if (response.ok) {
+        if (response.status === 200) {
           console.info("API connection successful!");
-          return response.json();
+          return response.data;
         } else {
           console.error(
             `API connection failed with status: ${response.status}`
