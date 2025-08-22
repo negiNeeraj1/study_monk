@@ -1,32 +1,33 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Download, Star, Crown, BookOpen, Filter } from 'lucide-react';
-import Card from '../Components/ui/Card';
-import PremiumNotes from "../images/PreiumNotes.jpg"
-import FullPackage from "../images/FullPackage.jpg"
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Search, Download, Star, Crown, BookOpen, Filter } from "lucide-react";
+import Card from "../Components/ui/Card";
+import PremiumNotes from "../images/PreiumNotes.jpg";
+import FullPackage from "../images/FullPackage.jpg";
+import QuizBanner from "../images/QuizBanner.jpg";
 
 // Import study material components
-import CategoryFilter from '../Components/study/CategoryFilter';
-import MaterialsGrid from '../Components/study/MaterialsGrid';
-import SearchBar from '../Components/study/SearchBar';
+import CategoryFilter from "../Components/study/CategoryFilter";
+import MaterialsGrid from "../Components/study/MaterialsGrid";
+import SearchBar from "../Components/study/SearchBar";
 
 // Import study material context
-import { useStudyMaterial } from '../context/StudyMaterialContext';
+import { useStudyMaterial } from "../context/StudyMaterialContext";
 const StudyMaterial = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedNotes, setGeneratedNotes] = useState('');
-  
+  const [generatedNotes, setGeneratedNotes] = useState("");
+
   // Get study material context
-  const { 
-    filteredMaterials, 
-    categories, 
-    activeCategory, 
-    setActiveCategory, 
-    isLoading, 
-    error, 
-    searchMaterials, 
-    downloadMaterial 
+  const {
+    filteredMaterials,
+    categories,
+    activeCategory,
+    setActiveCategory,
+    isLoading,
+    error,
+    searchMaterials,
+    downloadMaterial,
   } = useStudyMaterial();
 
   const premiumFeatures = [
@@ -34,26 +35,27 @@ const StudyMaterial = () => {
       title: "Premium Study Notes",
       oldPrice: "$49.99",
       price: "$29.99",
-      features: ["Downloadable PDF notes", "HD Quality diagrams", "Practice worksheets"],
+      features: [
+        "Downloadable PDF notes",
+        "HD Quality diagrams",
+        "Practice worksheets",
+      ],
       icon: <Crown className="w-6 h-6 text-yellow-500" />,
-      src:PremiumNotes
+      src: PremiumNotes,
     },
-    {
-      title: "Subject Bundle",
-      oldPrice: "$79.99",
-      price: "$49.99",
-      features: ["All subjects access", "Monthly tests", "Personal progress tracker"],
-      icon: <Star className="w-6 h-6 text-yellow-500" />,
-      src:SubjectBundle
-    },
+
     {
       title: "Complete Package",
       oldPrice: "$99.99",
       price: "$69.99",
-      features: ["1-on-1 mentoring", "Live doubt clearing", "Custom study plan"],
+      features: [
+        "1-on-1 mentoring",
+        "Live doubt clearing",
+        "Custom study plan",
+      ],
       icon: <BookOpen className="w-6 h-6 text-yellow-500" />,
-      src:FullPackage
-    }
+      src: FullPackage,
+    },
   ];
 
   // Handle search
@@ -61,26 +63,26 @@ const StudyMaterial = () => {
     setSearchQuery(query);
     searchMaterials(query);
   };
-  
+
   // Handle AI note generation
   const handleGenerateNotes = () => {
     setIsGenerating(true);
     setTimeout(() => {
-      setGeneratedNotes('Generated notes would appear here...');
+      setGeneratedNotes("Generated notes would appear here...");
       setIsGenerating(false);
     }, 2000);
   };
-  
+
   // Handle download
   const handleDownload = async (id) => {
     try {
       const response = await downloadMaterial(id);
       // In a real application, you would handle the file download here
-      console.log('Download response:', response);
+      console.log("Download response:", response);
       alert(`Download started for material ID: ${id}`);
     } catch (err) {
-      console.error('Error downloading material:', err);
-      alert('Failed to download material. Please try again.');
+      console.error("Error downloading material:", err);
+      alert("Failed to download material. Please try again.");
     }
   };
 
@@ -93,15 +95,18 @@ const StudyMaterial = () => {
       >
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold mb-4">Study Materials</h1>
-          <p className="text-xl mb-8">Access high-quality learning resources for your studies</p>
-          
+          <p className="text-xl mb-8">
+            Access high-quality learning resources for your studies
+          </p>
+
           <div className="max-w-2xl bg-white rounded-lg flex items-center p-2">
             <input
               type="text"
               placeholder="Enter a topic to generate AI notes..."
               className="flex-1 px-4 py-2 outline-none"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} style={{color:"black"}}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ color: "black" }}
             />
             <button
               onClick={handleGenerateNotes}
@@ -118,36 +123,36 @@ const StudyMaterial = () => {
         {/* Search and Filter Section */}
         <div className="mb-8">
           <SearchBar onSearch={handleSearch} />
-          
+
           <div className="flex items-center gap-2 mb-4">
             <Filter className="text-blue-600 w-5 h-5" />
             <h2 className="text-xl font-semibold">Filter by Category</h2>
           </div>
-          
-          <CategoryFilter 
-            categories={categories} 
-            activeCategory={activeCategory} 
-            setActiveCategory={setActiveCategory} 
+
+          <CategoryFilter
+            categories={categories}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
           />
         </div>
-        
+
         {/* Error Message */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
-        
+
         {/* Study Materials Grid */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Available Study Materials</h2>
-          <MaterialsGrid 
-            materials={filteredMaterials} 
-            onDownload={handleDownload} 
-            isLoading={isLoading} 
+          <MaterialsGrid
+            materials={filteredMaterials}
+            onDownload={handleDownload}
+            isLoading={isLoading}
           />
         </div>
-        
+
         {/* Premium Features Section */}
         <h2 className="text-3xl font-bold mb-8">Premium Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -160,14 +165,16 @@ const StudyMaterial = () => {
             >
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <div className="relative h-48 overflow-hidden rounded-t-xl">
-                  <img 
+                  <img
                     src={feature.src}
                     alt={feature.title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 text-white">
-                    <p className="text-sm line-through opacity-75">{feature.oldPrice}</p>
+                    <p className="text-sm line-through opacity-75">
+                      {feature.oldPrice}
+                    </p>
                     <p className="text-2xl font-bold">{feature.price}</p>
                   </div>
                 </div>
@@ -224,7 +231,7 @@ const StudyMaterial = () => {
               )}
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <div className="bg-gray-100 h-48 rounded-lg flex items-center justify-center text-gray-500">
               Image Placeholder 1
