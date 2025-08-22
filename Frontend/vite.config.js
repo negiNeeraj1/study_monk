@@ -17,5 +17,13 @@ export default defineConfig({
       "/api": "http://localhost:5000", // Main Backend
     },
   },
-  base: "./", // ✅ Fixes path issues on Vercel
+  base: "/", // Changed for Vercel compatibility
+  build: {
+    outDir: "dist",
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
 });
