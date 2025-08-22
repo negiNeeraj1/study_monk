@@ -1,0 +1,14 @@
+{
+  "name": "study-ai-root",
+  "version": "1.0.0",
+  "description": "Root package for StudyAI project",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "cd Backend && npm install && npm start",
+    "build": "cd Backend && npm install",
+    "dev": "cd Backend && npm run dev"
+  }
+}
