@@ -1,0 +1,17 @@
+{
+  "name": "StudyAI Admin Panel",
+  "short_name": "StudyAI Admin",
+  "description": "Admin panel for the StudyAI educational platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+
