@@ -261,7 +261,9 @@ const DebugPanel = () => {
       <div style={{ marginTop: "10px", fontSize: "12px", color: "#888" }}>
         <div>Environment: {import.meta.env.MODE}</div>
         <div>
-          API URL: {import.meta.env.VITE_API_URL || "http://localhost:5000/api"}
+          API URL:{" "}
+          {import.meta.env.VITE_API_URL ||
+            "http://localhost:5000/api"}
         </div>
       </div>
     </div>

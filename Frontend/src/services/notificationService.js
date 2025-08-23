@@ -24,7 +24,9 @@ class NotificationService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `Server responded with ${response.status}`);
+        throw new Error(
+          data.error || `Server responded with ${response.status}`
+        );
       }
 
       return data;
@@ -88,7 +90,9 @@ class NotificationService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to mark all notifications as read");
+        throw new Error(
+          data.error || "Failed to mark all notifications as read"
+        );
       }
 
       return data;
