@@ -10,6 +10,7 @@
         "create-admin": "node scripts/create-admin-simple.js",
         "create-admin-api": "node scripts/create-admin-via-api.js",
         "test-db": "node scripts/test-mongodb-connection.js",
+    "test-db-connection": "node scripts/test-db-connection.js",
         "update-schema": "node scripts/update-user-schema.js"
     },
     "keywords": [

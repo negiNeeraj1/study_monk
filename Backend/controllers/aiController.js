@@ -1,9 +1,24 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const getGenAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "No API key found. Please set GEMINI_API_KEY or GOOGLE_AI_API_KEY in your environment variables."
+    );
+  }
+  return new GoogleGenerativeAI(apiKey);
+};
 
 // Function to get available models
 const getAvailableModel = async () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "No API key found. Please set GEMINI_API_KEY or GOOGLE_AI_API_KEY in your environment variables."
+    );
+  }
   const models = [
     "gemini-2.0-flash",
     "gemini-1.5-pro",
@@ -13,6 +28,7 @@ const getAvailableModel = async () => {
 
   for (const modelName of models) {
     try {
+      const genAI = getGenAI();
       const model = genAI.getGenerativeModel({ model: modelName });
       // Test the model with a simple prompt
       const result = await model.generateContent("Hello");
@@ -31,7 +47,9 @@ const getAvailableModel = async () => {
 const checkAPIUsage = async () => {
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${
+        process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY
+      }`
     );
     const data = await response.json();
     return {

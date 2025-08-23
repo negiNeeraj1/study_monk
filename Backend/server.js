@@ -13,6 +13,10 @@ console.log(
   "Loaded GEMINI_API_KEY:",
   process.env.GEMINI_API_KEY ? "FOUND" : "NOT FOUND"
 );
+console.log(
+  "Loaded GOOGLE_AI_API_KEY:",
+  process.env.GOOGLE_AI_API_KEY ? "FOUND" : "NOT FOUND"
+);
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "NOT SET");
 const express = require("express");
 const app = express();
@@ -28,15 +32,44 @@ const connectDB = async () => {
       process.env.MONGODB_URI ||
       process.env.MONGO_URI ||
       "mongodb://localhost:27017/study-ai";
-    console.log("Connecting to MongoDB:", mongoUri);
-    await mongoose.connect(mongoUri, {
+
+    console.log("🔌 Attempting to connect to MongoDB...");
+    console.log(
+      "📍 Connection string:",
+      mongoUri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")
+    ); // Hide credentials in logs
+
+    const connectionOptions = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      socketTimeoutMS: 45000, // 45 second timeout
+      // Removed deprecated options: bufferMaxEntries, bufferCommands
+    };
+
+    await mongoose.connect(mongoUri, connectionOptions);
+    console.log("✅ MongoDB connected successfully!");
+
+    // Test the connection
+    const db = mongoose.connection;
+    db.on("error", (err) => {
+      console.error("❌ MongoDB connection error:", err);
     });
-    console.log("MongoDB connected");
+
+    db.on("disconnected", () => {
+      console.log("⚠️ MongoDB disconnected");
+    });
   } catch (err) {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1);
+    console.error("❌ MongoDB connection failed:", err.message);
+    console.error("🔍 Error details:", err);
+
+    // Don't exit immediately, give it a chance to retry
+    if (process.env.NODE_ENV === "production") {
+      console.log("🔄 Retrying connection in 5 seconds...");
+      setTimeout(connectDB, 5000);
+    } else {
+      process.exit(1);
+    }
   }
 };
 
