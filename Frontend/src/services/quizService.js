@@ -1,6 +1,7 @@
 // Note: this service uses native fetch, no api client import needed
 
-const QUIZ_API_BASE = "http://localhost:5000/api";
+const QUIZ_API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://aistudy-xfxe.onrender.com/api";
 
 class QuizService {
   // Get all published quizzes for students

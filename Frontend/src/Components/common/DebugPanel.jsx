@@ -263,7 +263,7 @@ const DebugPanel = () => {
         <div>
           API URL:{" "}
           {import.meta.env.VITE_API_URL ||
-            "http://localhost:5000/api"}
+            "https://aistudy-xfxe.onrender.com/api"}
         </div>
       </div>
     </div>

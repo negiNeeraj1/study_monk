@@ -1,4 +1,5 @@
-const NOTIFICATION_API_BASE = "http://localhost:5000/api";
+const NOTIFICATION_API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://aistudy-xfxe.onrender.com/api";
 
 class NotificationService {
   // Get user notifications with improved error handling

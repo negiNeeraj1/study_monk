@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     port: 3000, // Client Frontend on port 3000
     proxy: {
-      "/api": "http://localhost:5000", // Main Backend
+      "/api": "https://aistudy-xfxe.onrender.com", // Render Backend
     },
   },
   base: "/", // Changed for Vercel compatibility

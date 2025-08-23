@@ -16,7 +16,7 @@ if (import.meta.env.DEV) {
   console.info("🛠️ Running in DEVELOPMENT mode");
   console.info(
     "📡 API URL:",
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+    import.meta.env.VITE_API_URL || "https://aistudy-xfxe.onrender.com/api"
   );
 }
 
