@@ -6,21 +6,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001, // Admin Frontend on port 3001
-    host: 'localhost',
+    host: "localhost",
     strictPort: true,
     proxy: {
-      "/api": "http://localhost:5000", // Main Backend
+      "/api": "http://localhost:5001", // Admin Backend
     },
     hmr: {
-      host: 'localhost',
+      host: "localhost",
       port: 3001,
-      protocol: 'ws',
+      protocol: "ws",
     },
     // Add cache-busting headers for development
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
   },
 });

@@ -2,12 +2,12 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Users, UserCheck, UserX, Crown, TrendingUp } from "lucide-react";
 
-const UserStats = ({ users }) => {
-  const totalUsers = users.length;
+const UserStats = ({ users, totalCount = 0 }) => {
+  const totalUsers = totalCount || users.length;
   const activeUsers = users.filter(u => u.status === 'Active').length;
   const inactiveUsers = users.filter(u => u.status === 'Inactive').length;
-  const premiumUsers = users.filter(u => u.role === 'Premium Student').length;
-  const instructors = users.filter(u => u.role === 'Instructor').length;
+  const adminUsers = users.filter(u => u.role === 'admin').length;
+  const regularUsers = users.filter(u => u.role === 'user').length;
 
   const stats = [
     {
@@ -25,15 +25,15 @@ const UserStats = ({ users }) => {
       change: "+8.2%"
     },
     {
-      label: "Premium Users",
-      value: premiumUsers,
+      label: "Admin Users",
+      value: adminUsers,
       icon: Crown,
       color: "from-purple-500 to-purple-600",
       change: "+15.3%"
     },
     {
-      label: "Instructors",
-      value: instructors,
+      label: "Regular Users",
+      value: regularUsers,
       icon: TrendingUp,
       color: "from-yellow-500 to-yellow-600",
       change: "+5.1%"

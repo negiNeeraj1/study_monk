@@ -1,5 +1,5 @@
 // Admin Panel API Service
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:5001/api";
 
 class AdminAPI {
   constructor() {
@@ -9,7 +9,7 @@ class AdminAPI {
   // Get auth token from localStorage
   getAuthToken() {
     // Try both possible token keys for compatibility
-    return localStorage.getItem("token") || localStorage.getItem("adminToken");
+    return localStorage.getItem("adminToken") || localStorage.getItem("token");
   }
 
   // Create headers with auth token
@@ -25,9 +25,14 @@ class AdminAPI {
   async apiCall(endpoint, options = {}) {
     try {
       const token = this.getAuthToken();
-      
+
       // Check if token exists for protected routes
-      if (!token && !endpoint.includes('/health') && !endpoint.includes('/auth/')) {
+      if (
+        !token &&
+        !endpoint.includes("/health") &&
+        !endpoint.includes("/auth/") &&
+        !endpoint.includes("/admin/login")
+      ) {
         throw new Error("Authentication required. Please login first.");
       }
 
@@ -41,20 +46,25 @@ class AdminAPI {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        
+
         // Handle specific error cases
         if (response.status === 401) {
           // Clear invalid token
-          localStorage.removeItem("token");
           localStorage.removeItem("adminToken");
+          localStorage.removeItem("token");
+          localStorage.removeItem("adminUser");
           throw new Error("Session expired. Please login again.");
         }
-        
+
         if (response.status === 403) {
           throw new Error("Access denied. Admin privileges required.");
         }
-        
-        throw new Error(errorData.error || errorData.message || `HTTP Error: ${response.status}`);
+
+        throw new Error(
+          errorData.message ||
+            errorData.error ||
+            `HTTP Error: ${response.status}`
+        );
       }
 
       return await response.json();

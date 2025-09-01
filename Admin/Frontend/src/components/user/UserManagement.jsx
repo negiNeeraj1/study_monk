@@ -223,11 +223,11 @@ const UserManagement = () => {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case "Student":
+      case "user":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "Premium Student":
+      case "admin":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case "Instructor":
+      case "instructor":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
@@ -282,7 +282,7 @@ const UserManagement = () => {
       </div>
 
       {/* User Stats */}
-      <UserStats users={users} />
+      <UserStats users={users} totalCount={totalUsers} />
 
       {/* Filters */}
       <AnimatePresence>
@@ -348,7 +348,9 @@ const UserManagement = () => {
                     type="checkbox"
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedUsers(currentUsers.map((u) => u._id || u.id));
+                        setSelectedUsers(
+                          currentUsers.map((u) => u._id || u.id)
+                        );
                       } else {
                         setSelectedUsers([]);
                       }
@@ -484,7 +486,9 @@ const UserManagement = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {user.lastActive}
+                      {user.lastActive
+                        ? new Date(user.lastActive).toLocaleDateString()
+                        : "Never"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-2">

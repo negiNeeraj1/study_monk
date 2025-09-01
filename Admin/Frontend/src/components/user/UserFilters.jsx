@@ -16,9 +16,8 @@ const UserFilters = ({
 }) => {
   const roles = [
     { value: "all", label: "All Roles" },
-    { value: "Student", label: "Student" },
-    { value: "Premium Student", label: "Premium Student" },
-    { value: "Instructor", label: "Instructor" }
+    { value: "user", label: "Regular User" },
+    { value: "admin", label: "Admin" }
   ];
 
   const statuses = [
@@ -30,8 +29,8 @@ const UserFilters = ({
   const sortOptions = [
     { value: "name", label: "Name" },
     { value: "email", label: "Email" },
-    { value: "joinDate", label: "Join Date" },
-    { value: "lastActive", label: "Last Active" }
+    { value: "createdAt", label: "Join Date" },
+    { value: "updatedAt", label: "Last Active" }
   ];
 
   return (

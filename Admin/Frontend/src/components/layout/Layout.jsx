@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "./Header";
 import AdminSidebar from "./AdminSidebar";
@@ -8,8 +8,11 @@ import { useDashboard } from "../../context/DashboardContext";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { darkMode, setDarkMode, sidebarCollapsed, toast, showToast, loading } =
     useDashboard();
 
@@ -17,6 +20,36 @@ const Layout = () => {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Check authentication on mount and route changes
+  useEffect(() => {
+    if (!isClient) return;
+
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const isAuth = !!token;
+
+      setIsAuthenticated(isAuth);
+      setIsLoading(false);
+
+      // Redirect to login if not authenticated and not already on login page
+      if (!isAuth && location.pathname !== "/login") {
+        navigate("/login", { replace: true });
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (logout from other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === "token") {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [isClient, location.pathname, navigate]);
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -56,9 +89,33 @@ const Layout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sidebarOpen, isClient]);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">
+            Loading admin panel...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render layout for login page
+  if (location.pathname === "/login") {
+    return <Outlet />;
+  }
+
+  // Don't render layout if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div
-      className={`min-h-screen transition-colors duration-300  ${
+      className={`min-h-screen transition-colors duration-300 ${
         darkMode
           ? "dark bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900"
           : "bg-gradient-to-br from-blue-50 via-white to-purple-50"
@@ -92,17 +149,17 @@ const Layout = () => {
         />
       </div>
 
-      <div className="lg:flex min-h-screen">
+      <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
         <AdminSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col transition-all duration-300">
+        <div className="flex-1 flex flex-col min-h-0 transition-all duration-300">
           {/* Header */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
           {/* Main Content */}
-          <main className="flex-1 relative mt-2">
+          <main className="flex-1 relative overflow-auto">
             {/* Loading Overlay */}
             <AnimatePresence>
               {loading && (
@@ -126,12 +183,12 @@ const Layout = () => {
             </AnimatePresence>
 
             {/* Page Content */}
-            <div className="px-3 sm:px-4">
+            <div className="px-3 sm:px-4 py-4">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="max-w-none pt-1"
+                className="max-w-none"
               >
                 <AnimatePresence mode="wait">
                   <motion.div

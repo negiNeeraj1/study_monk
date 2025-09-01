@@ -4,15 +4,12 @@ import { BrowserRouter } from "react-router-dom";
 import "../src/index.css";
 import App from "./App.jsx";
 
-// Import debugger
-import "./utils/debugger";
-
 // Development mode debug info
 if (import.meta.env.DEV) {
   console.info("🛠️ Running in DEVELOPMENT mode");
   console.info(
     "📡 Admin API URL:",
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+    import.meta.env.VITE_API_URL || "http://localhost:5001/api"
   );
 
   // Unregister any existing service workers in development
@@ -25,12 +22,7 @@ if (import.meta.env.DEV) {
     });
   }
 
-  // Check CORS configuration on startup
-  setTimeout(() => {
-    if (window.adminDebugger) {
-      window.adminDebugger.checkCorsConfig();
-    }
-  }, 2000);
+
 }
 
 // Service Worker registration for PWA capabilities (production only)

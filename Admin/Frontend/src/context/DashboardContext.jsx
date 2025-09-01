@@ -105,12 +105,15 @@ export const DashboardProvider = ({ children }) => {
   // Load dashboard data on mount (only if authenticated)
   useEffect(() => {
     // Check if user is authenticated before loading data
-    const token = localStorage.getItem("token") || localStorage.getItem("adminToken");
+    const token =
+      localStorage.getItem("adminToken") || localStorage.getItem("token");
     if (token) {
       loadDashboardData();
     } else {
-      console.warn("🚨 No authentication token found, skipping dashboard data load");
-      showToast("Please login to access dashboard", "warning");
+      console.warn(
+        "🚨 No authentication token found, skipping dashboard data load"
+      );
+      // Don't show toast for unauthenticated users - they'll be redirected to login
     }
   }, []);
 
@@ -118,13 +121,13 @@ export const DashboardProvider = ({ children }) => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Check authentication before making API calls
-      const token = localStorage.getItem("token") || localStorage.getItem("adminToken");
+      const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication required. Please login first.");
       }
-      
+
       const [dashStats, healthData] = await Promise.all([
         adminAPI.getDashboardStats(),
         adminAPI.getSystemHealth().catch((err) => {
@@ -152,7 +155,14 @@ export const DashboardProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
-      showToast("Failed to load dashboard data", "error");
+
+      // Only show toast if it's not an authentication error
+      if (
+        !error.message.includes("Authentication required") &&
+        !error.message.includes("Session expired")
+      ) {
+        showToast("Failed to load dashboard data", "error");
+      }
     } finally {
       setLoading(false);
     }

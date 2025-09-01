@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   Search,
@@ -16,6 +17,7 @@ import {
 import { useDashboard } from "../../context/DashboardContext";
 
 const Header = ({ sidebarOpen, setSidebarOpen }) => {
+  const navigate = useNavigate();
   const {
     darkMode,
     setDarkMode,
@@ -38,6 +40,22 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
       showToast(`Searching for: ${searchQuery}`, "info");
       setSearchQuery("");
     }
+  };
+
+  const handleLogout = () => {
+    // Clear all authentication data
+    localStorage.removeItem("token");
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminUser");
+
+    // Show logout message
+    showToast("Logged out successfully", "success");
+
+    // Close user menu
+    setShowUserMenu(false);
+
+    // Redirect to login
+    navigate("/login", { replace: true });
   };
 
   const toggleFullscreen = () => {
@@ -296,6 +314,7 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
                       <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-2" />
                       <motion.button
                         whileHover={{ x: 4 }}
+                        onClick={handleLogout}
                         className="flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       >
                         <LogOut size={16} className="mr-3" />
