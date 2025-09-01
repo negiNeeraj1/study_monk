@@ -9,42 +9,56 @@ if (!process.env.MONGODB_URI && !process.env.MONGO_URI) {
   process.env.MONGODB_URI = "mongodb://localhost:27017/study-ai";
 }
 
-console.log(
-  "Loaded GEMINI_API_KEY:",
-  process.env.GEMINI_API_KEY ? "FOUND" : "NOT FOUND"
-);
-console.log(
-  "Loaded GOOGLE_AI_API_KEY:",
-  process.env.GOOGLE_AI_API_KEY ? "FOUND" : "NOT FOUND"
-);
-console.log("JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "NOT SET");
+console.log("🔧 Environment Configuration:");
+console.log("- NODE_ENV:", process.env.NODE_ENV || "development");
+console.log("- PORT:", process.env.PORT || 5000);
+console.log("- JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "NOT SET");
+console.log("- MONGODB_URI:", process.env.MONGODB_URI ? "SET" : "NOT SET");
+console.log("- GEMINI_API_KEY:", process.env.GEMINI_API_KEY ? "FOUND" : "NOT FOUND");
+console.log("- GOOGLE_AI_API_KEY:", process.env.GOOGLE_AI_API_KEY ? "FOUND" : "NOT FOUND");
+
 const express = require("express");
 const app = express();
-
-app.use(express.json());
-const cors = require("cors");
-
 const mongoose = require("mongoose");
 
+// Import security middleware
+const { applySecurityMiddleware } = require("./middleware/security");
+
+// Import RBAC middleware
+const { hasAtLeastRole, hasPermission } = require("./middleware/rbac");
+
+// Import authentication middleware
+const { auth, adminAuth, instructorOrAdminAuth } = require("./middleware/auth");
+
+// Import error handling middleware
+const { notFound, errorHandler } = require("./middleware/errorHandler");
+
+// Import routes
+const authRoutes = require("./routes/authRoutes");
+const aiRoutes = require("./routes/aiRoutes");
+const studyMaterialRoutes = require("./routes/studyMaterialRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const quizAttemptRoutes = require("./routes/quizAttemptRoutes");
+
+// Database connection function
 const connectDB = async () => {
   try {
-    const mongoUri =
-      process.env.MONGODB_URI ||
-      process.env.MONGO_URI ||
-      "mongodb://localhost:27017/study-ai";
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://localhost:27017/study-ai";
 
     console.log("🔌 Attempting to connect to MongoDB...");
-    console.log(
-      "📍 Connection string:",
-      mongoUri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")
-    ); // Hide credentials in logs
+    console.log("📍 Connection string:", mongoUri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@"));
 
     const connectionOptions = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      serverSelectionTimeoutMS: 10000, // 10 second timeout
       socketTimeoutMS: 45000, // 45 second timeout
-      // Removed deprecated options: bufferMaxEntries, bufferCommands
+      maxPoolSize: 10, // Maximum number of connections in the pool
+      minPoolSize: 2, // Minimum number of connections in the pool
+      maxIdleTimeMS: 30000, // Maximum time a connection can be idle
+      retryWrites: true,
+      w: "majority"
     };
 
     await mongoose.connect(mongoUri, connectionOptions);
@@ -59,151 +73,147 @@ const connectDB = async () => {
     db.on("disconnected", () => {
       console.log("⚠️ MongoDB disconnected");
     });
+
+    db.on("reconnected", () => {
+      console.log("🔄 MongoDB reconnected");
+    });
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      console.log("🛑 Received SIGINT, closing MongoDB connection...");
+      await mongoose.connection.close();
+      console.log("✅ MongoDB connection closed");
+      process.exit(0);
+    });
+
+    process.on("SIGTERM", async () => {
+      console.log("🛑 Received SIGTERM, closing MongoDB connection...");
+      await mongoose.connection.close();
+      console.log("✅ MongoDB connection closed");
+      process.exit(0);
+    });
+
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
     console.error("🔍 Error details:", err);
 
-    // Don't exit immediately, give it a chance to retry
     if (process.env.NODE_ENV === "production") {
-      console.log("🔄 Retrying connection in 5 seconds...");
-      setTimeout(connectDB, 5000);
+      console.log("🔄 Retrying connection in 10 seconds...");
+      setTimeout(connectDB, 10000);
     } else {
+      console.error("💥 Exiting due to database connection failure");
       process.exit(1);
     }
   }
 };
 
-const authRoutes = require("./routes/authRoutes");
-const aiRoutes = require("./routes/aiRoutes");
-const studyMaterialRoutes = require("./routes/studyMaterialRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const quizAttemptRoutes = require("./routes/quizAttemptRoutes");
-const { notFound, errorHandler } = require("./middleware/errorHandler");
+// Initialize Express app
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || "localhost";
 
-// Load environment variables
+// Apply security middleware
+applySecurityMiddleware(app);
 
-// Initialize Express app;
-
-// Connect to MongoDB
-connectDB();
-
-// CORS configuration to allow both frontends
-const allowedOrigins = [
-  "http://localhost:3000", // Main frontend
-  "http://localhost:3001", // Admin frontend
-  "http://localhost:5173", // Vite dev server
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_URL,
-].filter(Boolean); // Remove undefined values
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser clients
-    if (process.env.ALLOW_ALL_ORIGINS === "true") return callback(null, true);
-    const isAllowed = allowedOrigins.includes(origin);
-    return isAllowed
-      ? callback(null, true)
-      : callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-
-// Middleware
-app.use(cors(corsOptions));
-
-// No-cache middleware for admin routes (development only)
-if (process.env.NODE_ENV === "development") {
-  app.use("/api/admin*", (req, res, next) => {
-    res.set({
-      "Cache-Control":
-        "no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0",
-      Pragma: "no-cache",
-      Expires: "0",
-      "Surrogate-Control": "no-store",
-    });
-    next();
-  });
-}
-
-// Routes
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "StudyAI Backend is running",
-    health: "ok",
-    docs: "/api/health",
-  });
-});
-
-// Health check route for Render
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: "ok",
-    message: "StudyAI Backend Server is running",
-    timestamp: new Date().toISOString(),
-    version: "1.0.0",
-    environment: process.env.NODE_ENV || "development",
-  });
-});
-app.use("/api/auth", authRoutes);
-app.use("/api/ai", aiRoutes);
-app.use("/api/study-materials", studyMaterialRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/quiz-attempts", quizAttemptRoutes);
-
-// Health check route
+// Health check route (public)
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     status: "ok",
-    message: "StudyAI Backend Server is running",
+    message: "AI-PSM Study Material System is running",
     timestamp: new Date().toISOString(),
-    version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
+    version: "1.0.0"
   });
 });
 
-// Debug JWT route
-app.get("/api/debug/jwt", (req, res) => {
-  const authHeader = req.headers.authorization;
-  const jwt = require("jsonwebtoken");
+// Database health check route (public)
+app.get("/api/health/db", async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState;
+    const statusMap = {
+      0: "disconnected",
+      1: "connected",
+      2: "connecting",
+      3: "disconnecting"
+    };
 
-  res.json({
-    success: true,
-    debug: {
-      jwtSecret: process.env.JWT_SECRET
-        ? "SET (length: " + process.env.JWT_SECRET.length + ")"
-        : "NOT SET",
-      authHeader: authHeader ? "PROVIDED" : "MISSING",
-      token: authHeader ? authHeader.substring(0, 20) + "..." : "NO TOKEN",
-      serverTime: new Date().toISOString(),
-      // Try to decode token without verification to see structure
-      tokenPayload: authHeader
-        ? (() => {
-            try {
-              const token = authHeader.split(" ")[1];
-              return jwt.decode(token); // Decode without verification
-            } catch (e) {
-              return "INVALID_FORMAT";
-            }
-          })()
-        : "NO_TOKEN",
-    },
-  });
+    res.status(200).json({
+      success: true,
+      database: {
+        status: statusMap[dbStatus] || "unknown",
+        readyState: dbStatus,
+        name: mongoose.connection.name,
+        host: mongoose.connection.host,
+        port: mongoose.connection.port
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Database health check failed",
+      details: error.message
+    });
+  }
 });
 
-// 404 handler for undefined API routes
-app.use("/api/*", notFound);
+// API Routes with RBAC protection
+app.use("/api/auth", authRoutes);
 
-// Global error handling middleware
+// AI routes - require authentication
+app.use("/api/ai", auth, aiRoutes);
+
+// Study material routes with role-based access
+app.use("/api/study-materials", auth, studyMaterialRoutes);
+
+// Notification routes - require authentication
+app.use("/api/notifications", auth, notificationRoutes);
+
+// Admin routes - require admin privileges
+app.use("/api/admin", adminAuth, adminRoutes);
+
+// Quiz attempt routes - require authentication
+app.use("/api/quiz-attempts", auth, quizAttemptRoutes);
+
+// 404 handler for undefined routes
+app.use("*", notFound);
+
+// Global error handler
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const startServer = async () => {
+  try {
+    // Connect to database first
+    await connectDB();
+    
+    // Start listening
+    app.listen(PORT, HOST, () => {
+      console.log("🚀 Server started successfully!");
+      console.log(`📍 Server running at: http://${HOST}:${PORT}`);
+      console.log(`🔗 API Base URL: http://${HOST}:${PORT}/api`);
+      console.log(`🏥 Health Check: http://${HOST}:${PORT}/api/health`);
+      console.log(`💾 Database Status: http://${HOST}:${PORT}/api/health/db`);
+      console.log("⏰ Started at:", new Date().toISOString());
+    });
+  } catch (error) {
+    console.error("💥 Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("💥 Uncaught Exception:", err);
+  console.error("Stack trace:", err.stack);
+  process.exit(1);
 });
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
+
+// Start the server
+startServer();

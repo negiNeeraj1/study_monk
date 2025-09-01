@@ -140,8 +140,8 @@ const requireAdmin = async (req, res, next) => {
   auth(req, res, (err) => {
     if (err) return next(err);
     
-    // Check admin role
-    if (!req.user || req.user.role !== 'admin') {
+    // Check admin role (admin or super_admin)
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super_admin')) {
       return res.status(403).json({ 
         success: false,
         error: "Access denied. Admin privileges required.",

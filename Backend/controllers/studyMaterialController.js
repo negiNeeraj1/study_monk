@@ -135,8 +135,8 @@ exports.downloadMaterial = async (req, res, next) => {
 // Upload study material (admin only)
 exports.uploadMaterial = async (req, res, next) => {
   try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
+    // Check if user is admin or super_admin
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
       return next(new ErrorResponse('Not authorized to upload study materials', 403));
     }
 
@@ -169,8 +169,8 @@ exports.uploadMaterial = async (req, res, next) => {
 // Delete study material (admin only)
 exports.deleteMaterial = async (req, res, next) => {
   try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
+    // Check if user is admin or super_admin
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
       return next(new ErrorResponse('Not authorized to delete study materials', 403));
     }
 
@@ -196,8 +196,8 @@ exports.deleteMaterial = async (req, res, next) => {
 // Update study material (admin only)
 exports.updateMaterial = async (req, res, next) => {
   try {
-    // Check if user is admin
-    if (req.user.role !== 'admin') {
+    // Check if user is admin or super_admin
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
       return next(new ErrorResponse('Not authorized to update study materials', 403));
     }
 
