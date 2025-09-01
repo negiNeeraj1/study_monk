@@ -8,6 +8,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -15,7 +16,12 @@ import { useNavigate, Link } from "react-router-dom";
 const Signup = () => {
   const { signup } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    userType: "user", // Default to user
+  });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,17 +48,45 @@ const Signup = () => {
       errs.email = "Please enter a valid email address";
     if (!validatePassword(form.password))
       errs.password = "Password must be at least 8 characters long";
+    if (!form.userType) errs.userType = "Please select user type";
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       setIsLoading(false);
       return;
     }
-    const result = await signup(form.name, form.email, form.password);
+
+    const result = await signup(
+      form.name,
+      form.email,
+      form.password,
+      form.userType
+    );
     setIsLoading(false);
     if (result.success) {
       setShowSuccess(true);
       setTimeout(() => {
-        navigate("/dashboard");
+        // Role-based redirection based on user type selection
+        if (
+          result.user &&
+          result.user.role === "admin" &&
+          form.userType === "admin"
+        ) {
+          // Redirect admin to admin panel
+          window.location.href = "http://localhost:3001";
+        } else if (
+          result.user &&
+          result.user.role === "user" &&
+          form.userType === "user"
+        ) {
+          // Redirect regular user to user dashboard
+          navigate("/dashboard");
+        } else {
+          // User type mismatch - show error
+          setFormError(
+            "Selected user type does not match your account. Please try again."
+          );
+          setShowSuccess(false);
+        }
       }, 2000);
     } else {
       setFormError(result.error || "Signup failed. Please try again.");
@@ -77,6 +111,36 @@ const Signup = () => {
           </p>
         </div>
         <form className="space-y-6" onSubmit={handleSignup}>
+          {/* User Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Register As
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Shield className="h-5 w-5 text-gray-400" />
+              </div>
+              <select
+                value={form.userType}
+                onChange={(e) => handleChange("userType", e.target.value)}
+                className={`w-full pl-10 pr-10 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                  errors.userType
+                    ? "border-red-400 bg-red-50 animate-pulse"
+                    : "border-gray-200 focus:border-blue-500 hover:border-gray-300"
+                }`}
+              >
+                <option value="user">👤 Regular User</option>
+                <option value="admin">🛡️ Admin</option>
+              </select>
+            </div>
+            {errors.userType && (
+              <div className="mt-1 text-sm text-red-600 flex items-center animate-slideDown">
+                <XCircle className="h-4 w-4 mr-1" />
+                {errors.userType}
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Full Name
@@ -153,7 +217,7 @@ const Signup = () => {
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
-                placeholder="Create a password (min 8 characters)"
+                placeholder="Enter your password"
                 className={`w-full pl-10 pr-10 py-3 border-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
                   errors.password
                     ? "border-red-400 bg-red-50 animate-pulse"
@@ -193,7 +257,7 @@ const Signup = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? (
               <>

@@ -1,11 +1,8 @@
 // src/services/api.js
 import axios from "axios";
 
-// Use environment variable in production, fallback to localhost in development
-const baseURL =
-  import.meta.env.VITE_API_URL || "https://aistudy-xfxe.onrender.com/api";
-
-console.log("API base URL:", baseURL); // Helpful for debugging
+// Use environment variable in production, fallback to proxy in development
+const baseURL = import.meta.env.VITE_API_URL || "/api";
 
 const api = axios.create({
   baseURL,

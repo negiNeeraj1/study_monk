@@ -13,6 +13,7 @@ import {
   Users,
   Trophy,
   Clock,
+  Shield,
 } from "lucide-react";
 import Footer from "../Components/common/Footer";
 
@@ -395,6 +396,85 @@ const StudyAILanding = () => {
                 >
                   Learn More
                 </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* User Type Selection Section */}
+        <section className="relative z-10 px-6 py-16">
+          <div className="max-w-4xl mx-auto text-center">
+            <div
+              className={`transition-all duration-1000 delay-400 ${
+                isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Choose Your Experience
+              </h2>
+              <p className="text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
+                Select the platform that best fits your role and start your
+                journey
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                {/* Regular User Panel */}
+                <div className="group p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200/50 hover:bg-white/90 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Student Portal
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Access AI-powered quizzes, study materials, and personalized
+                    learning tools designed for students.
+                  </p>
+                  <div className="space-y-3">
+                    <Link
+                      to="/signup"
+                      className="block w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transform hover:-translate-y-1 transition-all duration-300"
+                    >
+                      Join as Student
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="block w-full px-6 py-3 bg-white text-blue-600 border-2 border-blue-200 rounded-xl font-semibold hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                    >
+                      Student Login
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Admin Panel */}
+                <div className="group p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/50 hover:bg-white/90 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Admin Panel
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Manage users, content, analytics, and system administration
+                    with comprehensive admin tools.
+                  </p>
+                  <div className="space-y-3">
+                    <a
+                      href="http://localhost:3001/signup"
+                      className="block w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-300"
+                    >
+                      Admin Registration
+                    </a>
+                    <a
+                      href="http://localhost:3001/login"
+                      className="block w-full px-6 py-3 bg-white text-purple-600 border-2 border-purple-200 rounded-xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all duration-300"
+                    >
+                      Admin Login
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

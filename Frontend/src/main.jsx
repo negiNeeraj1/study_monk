@@ -8,9 +8,6 @@ import Navbar from "./Components/common/Navbar";
 import Footer from "./Components/common/Footer";
 import "./index.css";
 
-// Import debugger
-import "./utils/debugger";
-
 // Development mode debug info
 if (import.meta.env.DEV) {
   console.info("🛠️ Running in DEVELOPMENT mode");

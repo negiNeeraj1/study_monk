@@ -16,10 +16,10 @@ import Signup from "./pages/Signup";
 import ProtectedRoute from "./Components/auth/ProtectedRoute";
 import DashboardLanding from "./pages/DashboardLanding";
 import { useAuth } from "./context/AuthContext";
-import DebugPanel from "./Components/common/DebugPanel";
 
 const App = () => {
   const { user } = useAuth();
+
   return (
     <>
       <Routes>
@@ -28,7 +28,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="user">
               <MainLayout />
             </ProtectedRoute>
           }
@@ -42,8 +42,6 @@ const App = () => {
           <Route path="/assistant" element={<Assistant />} />
         </Route>
       </Routes>
-      {/* Debug Panel - only shows in development mode */}
-      <DebugPanel />
     </>
   );
 };
