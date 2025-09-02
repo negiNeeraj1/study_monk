@@ -1,5 +1,5 @@
 services:
-  # Backend Service
+  # Main Backend Service
   - type: web
     name: study-ai-backend
     env: node
@@ -24,10 +24,38 @@ services:
         value: https://study-ai-admin.onrender.com
       - key: ALLOW_ALL_ORIGINS
         value: false
-    healthCheckPath: /health
+    healthCheckPath: /api/health
     autoDeploy: true
 
-  # Frontend Service
+  # Admin Backend Service
+  - type: web
+    name: study-ai-admin-backend
+    env: node
+    plan: free
+    rootDir: Admin/Backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10001
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://study-ai-frontend.onrender.com
+      - key: ADMIN_FRONTEND_URL
+        value: https://study-ai-admin.onrender.com
+      - key: MAIN_BACKEND_URL
+        value: https://study-ai-backend.onrender.com
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+  # Main Frontend Service (User-facing)
   - type: web
     name: study-ai-frontend
     env: static
@@ -36,11 +64,13 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
-      - key: VITE_API_BASE_URL
-        value: https://study-ai-backend.onrender.com
+      - key: VITE_API_URL
+        value: https://study-ai-backend.onrender.com/api
+      - key: VITE_ADMIN_API_URL
+        value: https://study-ai-admin-backend.onrender.com/api
     autoDeploy: true
 
-  # Admin Frontend Service (Optional)
+  # Admin Frontend Service
   - type: web
     name: study-ai-admin
     env: static
@@ -49,6 +79,8 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     envVars:
-      - key: VITE_API_BASE_URL
-        value: https://study-ai-backend.onrender.com
+      - key: VITE_API_URL
+        value: https://study-ai-admin-backend.onrender.com/api
+      - key: VITE_MAIN_API_URL
+        value: https://study-ai-backend.onrender.com/api
     autoDeploy: true
