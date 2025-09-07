@@ -13,11 +13,6 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "setup": "echo 'Setup script removed - use setup-admin-backend.js in Admin/Backend instead'",
-    "seed": "echo 'Seed script not available'",
-    "migrate": "echo 'Migration script not available'",
-    "health-check": "curl http://localhost:5000/api/health",
-    "db-check": "curl http://localhost:5000/api/health/db"
   },
   "keywords": [
     "ai",

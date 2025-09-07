@@ -149,12 +149,15 @@ exports.generateQuiz = async (req, res) => {
   try {
     const model = await getAvailableModel();
 
-    const prompt = `Generate ${count} multiple-choice quiz questions on the topic of '${topic}' for a ${level} level student. Each question should have 4 options and indicate the correct answer. 
+    const prompt = `Generate ${count} multiple-choice quiz questions on the topic of '${topic}' for a ${level} level student. Each question must have EXACTLY 4 options (A, B, C, D) and indicate the correct answer. 
 
-IMPORTANT: 
-- The answer should be the exact text of the correct option, not just A, B, C, or D.
-- Return ONLY the JSON array, no additional text or explanations.
-- Ensure the response is valid JSON format.
+CRITICAL REQUIREMENTS:
+- Each question must have EXACTLY 4 options, no more, no less
+- All options must be unique and different from each other
+- The answer should be the exact text of the correct option, not just A, B, C, or D
+- Return ONLY the JSON array, no additional text or explanations
+- Ensure the response is valid JSON format
+- Make sure no option text is repeated
 
 Format as JSON: [{"question": "question text", "options": ["option A text", "option B text", "option C text", "option D text"], "answer": "exact text of correct option"}]`;
 
@@ -183,7 +186,45 @@ Format as JSON: [{"question": "question text", "options": ["option A text", "opt
         .json({ error: "Failed to parse quiz from AI response." });
     }
 
-    res.json({ quiz });
+    // Validate and fix quiz data
+    const validatedQuiz = quiz.map((question, index) => {
+      // Ensure we have exactly 4 options
+      if (!question.options || question.options.length !== 4) {
+        console.warn(
+          `Question ${index + 1} has ${question.options?.length || 0} options, expected 4`
+        );
+        // If we have more than 4 options, take only the first 4
+        if (question.options && question.options.length > 4) {
+          question.options = question.options.slice(0, 4);
+        }
+      }
+
+      // Remove duplicate options
+      const uniqueOptions = [...new Set(question.options)];
+      if (uniqueOptions.length !== question.options.length) {
+        console.warn(
+          `Question ${index + 1} had duplicate options, removed duplicates`
+        );
+        question.options = uniqueOptions;
+      }
+
+      // Ensure we still have 4 options after deduplication
+      if (question.options.length < 4) {
+        console.warn(
+          `Question ${index + 1} has only ${question.options.length} options after deduplication`
+        );
+        // Add placeholder options if needed
+        while (question.options.length < 4) {
+          question.options.push(
+            `Option ${String.fromCharCode(65 + question.options.length)}`
+          );
+        }
+      }
+
+      return question;
+    });
+
+    res.json({ quiz: validatedQuiz });
   } catch (error) {
     console.error("Gemini quiz generation error:", error);
 

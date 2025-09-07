@@ -2,11 +2,6 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { ROLES, PERMISSIONS } = require("../models/User");
 
-/**
- * Enhanced Authentication Controller
- * Provides secure user registration, login, and account management
- */
-
 const createToken = (user) => {
   return jwt.sign(
     {
@@ -25,9 +20,6 @@ const createToken = (user) => {
   );
 };
 
-/**
- * User Registration
- */
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, userType = "user" } = req.body;
@@ -40,7 +32,6 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Validate userType
     if (userType && !Object.values(ROLES).includes(userType)) {
       return res.status(400).json({
         success: false,
@@ -48,7 +39,6 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Validate password strength
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -56,7 +46,6 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Check for existing user
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({
@@ -65,7 +54,6 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Create user with specified role
     const user = await User.create({
       name: name.trim(),
       email: email.toLowerCase().trim(),
@@ -103,7 +91,6 @@ exports.signup = async (req, res) => {
   } catch (err) {
     console.error("Signup error:", err);
 
-    // Handle validation errors
     if (err.name === "ValidationError") {
       const errors = Object.values(err.errors).map((error) => error.message);
       return res.status(400).json({
