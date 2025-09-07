@@ -73,7 +73,11 @@ exports.getAllMaterials = async (req, res) => {
     const materialsWithFileInfo = materials.map((material) => {
       let fileInfo = {};
       if (material.fileUrl) {
-        const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+        const filePath = path.join(
+          __dirname,
+          "../uploads/study-materials",
+          path.basename(material.fileUrl)
+        );
         try {
           if (fs.existsSync(filePath)) {
             const stats = fs.statSync(filePath);
@@ -219,7 +223,11 @@ exports.getMaterialById = async (req, res) => {
     // Add file information
     let fileInfo = {};
     if (material.fileUrl) {
-      const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+      const filePath = path.join(
+        __dirname,
+        "../uploads/study-materials",
+        path.basename(material.fileUrl)
+      );
       try {
         if (fs.existsSync(filePath)) {
           const stats = fs.statSync(filePath);
@@ -285,6 +293,17 @@ exports.createMaterial = async (req, res) => {
     }
 
     // Create study material
+    const parseBool = (val) => {
+      if (typeof val === "boolean") return val;
+      if (typeof val === "string") return val.toLowerCase() === "true";
+      return false;
+    };
+
+    // Ensure status and isPublished remain consistent
+    const requestedStatus = (status || "").toString().toLowerCase();
+    const effectivePublished =
+      parseBool(isPublished) || requestedStatus === "published";
+
     const studyMaterial = new StudyMaterial({
       title,
       description,
@@ -294,9 +313,9 @@ exports.createMaterial = async (req, res) => {
       difficulty,
       tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
       author: req.user.id,
-      isPublished: isPublished === "true",
-      isPremium: isPremium === "true",
-      status: status || "draft",
+      isPublished: effectivePublished,
+      isPremium: parseBool(isPremium),
+      status: effectivePublished ? "published" : requestedStatus || "draft",
       fileUrl,
       fileSize,
     });
@@ -353,7 +372,11 @@ exports.updateMaterial = async (req, res) => {
     if (req.file) {
       // Delete old file if it exists
       if (existingMaterial.fileUrl) {
-        const oldFilePath = path.join(__dirname, "../uploads/study-materials", path.basename(existingMaterial.fileUrl));
+        const oldFilePath = path.join(
+          __dirname,
+          "../uploads/study-materials",
+          path.basename(existingMaterial.fileUrl)
+        );
         try {
           if (fs.existsSync(oldFilePath)) {
             fs.unlinkSync(oldFilePath);
@@ -370,6 +393,34 @@ exports.updateMaterial = async (req, res) => {
     // Handle tags
     if (updateData.tags) {
       updateData.tags = updateData.tags.split(",").map((tag) => tag.trim());
+    }
+
+    // Handle publication status: keep status and isPublished in sync
+    const isPublishedProvided = Object.prototype.hasOwnProperty.call(
+      updateData,
+      "isPublished"
+    );
+    const statusProvided = Object.prototype.hasOwnProperty.call(
+      updateData,
+      "status"
+    );
+    if (isPublishedProvided || statusProvided) {
+      const parseBool = (val) => {
+        if (typeof val === "boolean") return val;
+        if (typeof val === "string") return val.toLowerCase() === "true";
+        return false;
+      };
+      const requestedStatus = (
+        updateData.status ||
+        existingMaterial.status ||
+        ""
+      )
+        .toString()
+        .toLowerCase();
+      const effectivePublished =
+        parseBool(updateData.isPublished) || requestedStatus === "published";
+      updateData.isPublished = effectivePublished;
+      updateData.status = effectivePublished ? "published" : "draft";
     }
 
     // Update material
@@ -424,7 +475,11 @@ exports.deleteMaterial = async (req, res) => {
 
     // Delete associated file
     if (material.fileUrl) {
-      const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+      const filePath = path.join(
+        __dirname,
+        "../uploads/study-materials",
+        path.basename(material.fileUrl)
+      );
       try {
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
@@ -515,7 +570,11 @@ exports.bulkPublish = async (req, res) => {
   try {
     const { materialIds } = req.body;
 
-    if (!materialIds || !Array.isArray(materialIds) || materialIds.length === 0) {
+    if (
+      !materialIds ||
+      !Array.isArray(materialIds) ||
+      materialIds.length === 0
+    ) {
       return res.status(400).json({
         success: false,
         message: "Please provide valid material IDs",
@@ -561,7 +620,11 @@ exports.bulkDelete = async (req, res) => {
   try {
     const { materialIds } = req.body;
 
-    if (!materialIds || !Array.isArray(materialIds) || materialIds.length === 0) {
+    if (
+      !materialIds ||
+      !Array.isArray(materialIds) ||
+      materialIds.length === 0
+    ) {
       return res.status(400).json({
         success: false,
         message: "Please provide valid material IDs",
@@ -570,11 +633,15 @@ exports.bulkDelete = async (req, res) => {
 
     // Get materials to delete files
     const materials = await StudyMaterial.find({ _id: { $in: materialIds } });
-    
+
     // Delete associated files
     for (const material of materials) {
       if (material.fileUrl) {
-        const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+        const filePath = path.join(
+          __dirname,
+          "../uploads/study-materials",
+          path.basename(material.fileUrl)
+        );
         try {
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
@@ -585,7 +652,9 @@ exports.bulkDelete = async (req, res) => {
       }
     }
 
-    const result = await StudyMaterial.deleteMany({ _id: { $in: materialIds } });
+    const result = await StudyMaterial.deleteMany({
+      _id: { $in: materialIds },
+    });
 
     // Log the action
     await SystemLog.create({
@@ -636,7 +705,11 @@ exports.downloadMaterial = async (req, res) => {
       });
     }
 
-    const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+    const filePath = path.join(
+      __dirname,
+      "../uploads/study-materials",
+      path.basename(material.fileUrl)
+    );
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
@@ -649,9 +722,72 @@ exports.downloadMaterial = async (req, res) => {
     material.downloads += 1;
     await material.save();
 
+    // Get file extension and set appropriate MIME type
+    const ext = path.extname(filePath).toLowerCase();
+    let contentType = "application/octet-stream";
+    let fileName = `${material.title}${ext}`;
+
+    // Set correct MIME type based on file extension
+    switch (ext) {
+      case ".pdf":
+        contentType = "application/pdf";
+        break;
+      case ".doc":
+        contentType = "application/msword";
+        break;
+      case ".docx":
+        contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        break;
+      case ".ppt":
+        contentType = "application/vnd.ms-powerpoint";
+        break;
+      case ".pptx":
+        contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        break;
+      case ".txt":
+        contentType = "text/plain";
+        break;
+      case ".csv":
+        contentType = "text/csv";
+        break;
+      case ".jpg":
+      case ".jpeg":
+        contentType = "image/jpeg";
+        break;
+      case ".png":
+        contentType = "image/png";
+        break;
+      case ".gif":
+        contentType = "image/gif";
+        break;
+      case ".webp":
+        contentType = "image/webp";
+        break;
+      case ".mp4":
+        contentType = "video/mp4";
+        break;
+      case ".webm":
+        contentType = "video/webm";
+        break;
+      case ".ogg":
+        contentType = "video/ogg";
+        break;
+      case ".avi":
+        contentType = "video/x-msvideo";
+        break;
+      case ".mp3":
+        contentType = "audio/mpeg";
+        break;
+      case ".wav":
+        contentType = "audio/wav";
+        break;
+      default:
+        contentType = "application/octet-stream";
+    }
+
     // Set headers for download
-    res.setHeader("Content-Disposition", `attachment; filename="${material.title}${path.extname(filePath)}"`);
-    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Type", contentType);
 
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
@@ -685,7 +821,11 @@ exports.previewMaterial = async (req, res) => {
       });
     }
 
-    const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+    const filePath = path.join(
+      __dirname,
+      "../uploads/study-materials",
+      path.basename(material.fileUrl)
+    );
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
@@ -701,7 +841,7 @@ exports.previewMaterial = async (req, res) => {
     // Set appropriate content type for preview
     const ext = path.extname(filePath).toLowerCase();
     let contentType = "text/plain";
-    
+
     if (ext === ".pdf") contentType = "application/pdf";
     else if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
     else if (ext === ".png") contentType = "image/png";
@@ -711,7 +851,7 @@ exports.previewMaterial = async (req, res) => {
     else if (ext === ".ogg") contentType = "video/ogg";
 
     res.setHeader("Content-Type", contentType);
-    
+
     // Stream the file for preview
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);

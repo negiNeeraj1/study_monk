@@ -32,6 +32,7 @@ const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
 const morgan = require("morgan");
+const path = require("path");
 
 // Import configurations and middleware
 const connectDB = require("./config/database");
@@ -205,6 +206,10 @@ app.get("/api/docs", (req, res) => {
     },
   });
 });
+
+// Serve uploaded study materials statically
+const uploadsDir = path.join(__dirname, "./uploads");
+app.use("/uploads", express.static(uploadsDir));
 
 // Catch-all route for undefined endpoints
 app.use("/api/*", (req, res) => {

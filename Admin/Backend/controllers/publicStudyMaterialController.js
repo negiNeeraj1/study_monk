@@ -59,7 +59,11 @@ exports.getAllPublishedMaterials = async (req, res) => {
     const materialsWithFileInfo = materials.map((material) => {
       let fileInfo = {};
       if (material.fileUrl) {
-        const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+        const filePath = path.join(
+          __dirname,
+          "../uploads/study-materials",
+          path.basename(material.fileUrl)
+        );
         try {
           if (fs.existsSync(filePath)) {
             const stats = fs.statSync(filePath);
@@ -182,7 +186,11 @@ exports.getMaterialById = async (req, res) => {
     // Add file information
     let fileInfo = {};
     if (material.fileUrl) {
-      const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+      const filePath = path.join(
+        __dirname,
+        "../uploads/study-materials",
+        path.basename(material.fileUrl)
+      );
       try {
         if (fs.existsSync(filePath)) {
           const stats = fs.statSync(filePath);
@@ -248,7 +256,11 @@ exports.downloadMaterial = async (req, res) => {
       });
     }
 
-    const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+    const filePath = path.join(
+      __dirname,
+      "../uploads/study-materials",
+      path.basename(material.fileUrl)
+    );
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
@@ -260,9 +272,81 @@ exports.downloadMaterial = async (req, res) => {
     // Update download count
     await StudyMaterial.findByIdAndUpdate(id, { $inc: { downloads: 1 } });
 
+    // Get file extension and set appropriate MIME type
+    const ext = path.extname(filePath).toLowerCase();
+    let contentType = "application/octet-stream";
+    let fileName = `${material.title}${ext}`;
+
+    // Set correct MIME type based on file extension
+    switch (ext) {
+      case ".pdf":
+        contentType = "application/pdf";
+        break;
+      case ".doc":
+        contentType = "application/msword";
+        break;
+      case ".docx":
+        contentType =
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        break;
+      case ".ppt":
+        contentType = "application/vnd.ms-powerpoint";
+        break;
+      case ".pptx":
+        contentType =
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+        break;
+      case ".txt":
+        contentType = "text/plain";
+        break;
+      case ".csv":
+        contentType = "text/csv";
+        break;
+      case ".jpg":
+      case ".jpeg":
+        contentType = "image/jpeg";
+        break;
+      case ".png":
+        contentType = "image/png";
+        break;
+      case ".gif":
+        contentType = "image/gif";
+        break;
+      case ".webp":
+        contentType = "image/webp";
+        break;
+      case ".mp4":
+        contentType = "video/mp4";
+        break;
+      case ".webm":
+        contentType = "video/webm";
+        break;
+      case ".ogg":
+        contentType = "video/ogg";
+        break;
+      case ".avi":
+        contentType = "video/x-msvideo";
+        break;
+      case ".mp3":
+        contentType = "audio/mpeg";
+        break;
+      case ".wav":
+        contentType = "audio/wav";
+        break;
+      default:
+        contentType = "application/octet-stream";
+    }
+
     // Set headers for download
-    res.setHeader("Content-Disposition", `attachment; filename="${material.title}${path.extname(filePath)}"`);
-    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Type", contentType);
+
+    console.log("Download headers set:", {
+      contentType,
+      fileName,
+      filePath,
+      ext,
+    });
 
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
@@ -301,7 +385,11 @@ exports.previewMaterial = async (req, res) => {
       });
     }
 
-    const filePath = path.join(__dirname, "../uploads/study-materials", path.basename(material.fileUrl));
+    const filePath = path.join(
+      __dirname,
+      "../uploads/study-materials",
+      path.basename(material.fileUrl)
+    );
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
@@ -313,7 +401,7 @@ exports.previewMaterial = async (req, res) => {
     // Set appropriate content type for preview
     const ext = path.extname(filePath).toLowerCase();
     let contentType = "text/plain";
-    
+
     if (ext === ".pdf") contentType = "application/pdf";
     else if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
     else if (ext === ".png") contentType = "image/png";
@@ -323,7 +411,7 @@ exports.previewMaterial = async (req, res) => {
     else if (ext === ".ogg") contentType = "video/ogg";
 
     res.setHeader("Content-Type", contentType);
-    
+
     // Stream the file for preview
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);

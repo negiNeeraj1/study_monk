@@ -34,30 +34,78 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     // Generate unique filename with timestamp
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  // Allow only specific file types
-  const allowedTypes = [
+  // Expanded types to align with frontend accepted list
+  const allowedTypes = new Set([
+    // Documents
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "text/plain",
+    "text/csv",
+    // Images
     "image/jpeg",
+    "image/jpg",
     "image/png",
     "image/gif",
+    "image/webp",
+    // Video
     "video/mp4",
     "video/webm",
     "video/ogg",
-  ];
+    "video/avi",
+    // Audio
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+  ]);
 
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid file type. Only PDF, DOC, DOCX, TXT, images, and videos are allowed."), false);
+  if (allowedTypes.has(file.mimetype)) {
+    return cb(null, true);
   }
+
+  // Fallback: allow based on file extension if mimetype is missing/inexact
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = new Set([
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".ppt",
+    ".pptx",
+    ".txt",
+    ".csv",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+    ".mp4",
+    ".webm",
+    ".ogg",
+    ".avi",
+    ".mp3",
+    ".wav",
+  ]);
+
+  if (allowedExtensions.has(ext)) {
+    return cb(null, true);
+  }
+
+  cb(
+    new Error(
+      "Invalid file type. Allowed: PDF, DOC/DOCX, PPT/PPTX, TXT, CSV, images (JPG/PNG/GIF/WebP), videos (MP4/WebM/OGG/AVI), audio (MP3/WAV)."
+    ),
+    false
+  );
 };
 
 const upload = multer({

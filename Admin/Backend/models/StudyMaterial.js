@@ -4,12 +4,30 @@ const studyMaterialSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
-    content: { type: String, required: true },
-    type: { type: String, enum: ["note", "pdf", "video", "link"], default: "note" },
+    // Content is required only for note type
+    content: {
+      type: String,
+      required: function () {
+        return this.type === "note";
+      },
+    },
+    type: {
+      type: String,
+      enum: ["note", "pdf", "video", "link"],
+      default: "note",
+    },
     subject: { type: String, required: true },
-    difficulty: { type: String, enum: ["beginner", "intermediate", "advanced"], default: "beginner" },
+    difficulty: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+      default: "beginner",
+    },
     tags: [{ type: String }],
-    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     isPublished: { type: Boolean, default: false },
     isPremium: { type: Boolean, default: false },
     views: { type: Number, default: 0 },
@@ -19,7 +37,11 @@ const studyMaterialSchema = new mongoose.Schema(
     fileUrl: { type: String },
     fileSize: { type: Number },
     thumbnail: { type: String },
-    status: { type: String, enum: ["draft", "published", "archived"], default: "draft" },
+    status: {
+      type: String,
+      enum: ["draft", "published", "archived"],
+      default: "draft",
+    },
   },
   { timestamps: true }
 );

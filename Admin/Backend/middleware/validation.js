@@ -170,17 +170,28 @@ exports.validateStudyMaterial = [
   body("isPublished")
     .optional()
     .isBoolean()
-    .withMessage("isPublished must be a boolean"),
+    .withMessage("isPublished must be a boolean")
+    .toBoolean(),
 
   body("isPremium")
     .optional()
     .isBoolean()
-    .withMessage("isPremium must be a boolean"),
+    .withMessage("isPremium must be a boolean")
+    .toBoolean(),
 
   body("status")
     .optional()
     .isIn(["draft", "published", "archived"])
     .withMessage("Status must be draft, published, or archived"),
+  // If type is note, ensure content is present
+  body("content").custom((value, { req }) => {
+    if (req.body.type === "note") {
+      if (!value || !String(value).trim()) {
+        throw new Error("Content is required for note type");
+      }
+    }
+    return true;
+  }),
 ];
 
 // Pagination validation
