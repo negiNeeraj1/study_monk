@@ -200,30 +200,109 @@ class AdminAPI {
     return this.apiCall("/notifications/admin/analytics");
   }
 
-  // Study Materials (using existing backend)
+  // Study Materials (Admin Panel)
   async getMaterials(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.apiCall(`/study-materials?${queryString}`);
+    return this.apiCall(`/admin/study-materials?${queryString}`);
+  }
+
+  async getMaterialById(materialId) {
+    return this.apiCall(`/admin/study-materials/${materialId}`);
   }
 
   async createMaterial(materialData) {
-    return this.apiCall("/study-materials", {
+    const token = this.getAuthToken();
+    const url = `${this.baseURL}/admin/study-materials`;
+
+    const response = await fetch(url, {
       method: "POST",
-      body: JSON.stringify(materialData),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Don't set Content-Type for FormData - let browser set it with boundary
+      },
+      body: materialData, // FormData object
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const details = Array.isArray(errorData.errors)
+        ? " - " +
+          errorData.errors.map((e) => `${e.field}: ${e.message}`).join(", ")
+        : "";
+      throw new Error(
+        (errorData.message || `HTTP Error: ${response.status}`) + details
+      );
+    }
+
+    return await response.json();
   }
 
   async updateMaterial(materialId, materialData) {
-    return this.apiCall(`/study-materials/${materialId}`, {
+    const token = this.getAuthToken();
+    const url = `${this.baseURL}/admin/study-materials/${materialId}`;
+
+    const response = await fetch(url, {
       method: "PUT",
-      body: JSON.stringify(materialData),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Don't set Content-Type for FormData - let browser set it with boundary
+      },
+      body: materialData, // FormData object
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const details = Array.isArray(errorData.errors)
+        ? " - " +
+          errorData.errors.map((e) => `${e.field}: ${e.message}`).join(", ")
+        : "";
+      throw new Error(
+        (errorData.message || `HTTP Error: ${response.status}`) + details
+      );
+    }
+
+    return await response.json();
   }
 
   async deleteMaterial(materialId) {
-    return this.apiCall(`/study-materials/${materialId}`, {
+    return this.apiCall(`/admin/study-materials/${materialId}`, {
       method: "DELETE",
     });
+  }
+
+  async toggleMaterialPublication(materialId) {
+    return this.apiCall(
+      `/admin/study-materials/${materialId}/toggle-publication`,
+      {
+        method: "PATCH",
+      }
+    );
+  }
+
+  async bulkPublishMaterials(materialIds) {
+    return this.apiCall("/admin/study-materials/bulk-publish", {
+      method: "POST",
+      body: JSON.stringify({ materialIds }),
+    });
+  }
+
+  async bulkDeleteMaterials(materialIds) {
+    return this.apiCall("/admin/study-materials/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ materialIds }),
+    });
+  }
+
+  async getMaterialStats() {
+    return this.apiCall("/admin/study-materials/stats");
+  }
+
+  async downloadMaterial(materialId) {
+    return this.apiCall(`/admin/study-materials/${materialId}/download`);
+  }
+
+  async previewMaterial(materialId) {
+    return this.apiCall(`/admin/study-materials/${materialId}/preview`);
   }
 }
 

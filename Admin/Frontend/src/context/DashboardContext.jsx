@@ -123,7 +123,7 @@ export const DashboardProvider = ({ children }) => {
       setLoading(true);
 
       // Check authentication before making API calls
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication required. Please login first.");
       }

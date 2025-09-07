@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import AdminSidebar from "./AdminSidebar";
 import DashboardOverview from "../dashboard/DashboardOverview";
 import UserManagement from "../user/UserManagement";
-import MaterialManagement from "../materials/MaterialManagement";
+import StudyMaterialManagement from "../materials/StudyMaterialManagement";
 import QuizManagement from "../quiz/QuizManagement";
 import FileUpload from "../upload/FileUpload";
 import Analytics from "../analytics/Analytics";
@@ -68,7 +68,7 @@ const AdminLayout = () => {
             <Route path="dashboard" element={<DashboardOverview />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="materials" element={<MaterialManagement />} />
+            <Route path="materials" element={<StudyMaterialManagement />} />
             <Route path="quizzes" element={<QuizManagement />} />
             <Route path="upload" element={<FileUpload />} />
             <Route path="reports" element={<Reports />} />

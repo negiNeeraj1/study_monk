@@ -13,6 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const storedToken = localStorage.getItem("token");
 
-      if (!token) {
+      if (!storedToken) {
         setLoading(false);
         return;
       }
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       // Verify token with backend
       const response = await fetch("http://localhost:5001/api/auth/verify", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
           "Content-Type": "application/json",
         },
       });
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }) => {
         const userData = await response.json();
         setUser(userData.user);
         setIsAuthenticated(true);
+        setToken(storedToken);
 
         // Redirect based on role if accessing wrong area
         handleRoleBasedRedirect(userData.user.role, location.pathname);
@@ -91,6 +93,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", data.token);
       setUser(data.user);
       setIsAuthenticated(true);
+      setToken(data.token);
 
       // Redirect based on role
       if (data.user.role === "admin") {
@@ -111,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
+    setToken(null);
     navigate("/login", { replace: true });
   };
 
@@ -142,6 +146,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     isAuthenticated,
+    token,
     login,
     logout,
     hasRole,
