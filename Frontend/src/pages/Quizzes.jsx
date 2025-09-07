@@ -120,9 +120,37 @@ const Quizzes = () => {
         const limitedQuestions = data.quiz.slice(0, config.questionCount.value);
 
         const processedQuestions = limitedQuestions.map((q, qIndex) => {
+          // Ensure we have exactly 4 options
+          const options = q.options.slice(0, 4);
+
+          // Remove duplicate options
+          const uniqueOptions = [...new Set(options)];
+
+          // Ensure we have 4 unique options
+          const finalOptions =
+            uniqueOptions.length >= 4
+              ? uniqueOptions.slice(0, 4)
+              : [
+                  ...uniqueOptions,
+                  ...Array(4 - uniqueOptions.length)
+                    .fill()
+                    .map(
+                      (_, i) =>
+                        `Option ${String.fromCharCode(
+                          65 + uniqueOptions.length + i
+                        )}`
+                    ),
+                ];
+
+          console.log(`Question ${qIndex + 1}:`, {
+            originalOptions: q.options,
+            processedOptions: finalOptions,
+            answer: q.answer,
+          });
+
           return {
             text: q.question,
-            options: q.options.map((opt, index) => {
+            options: finalOptions.map((opt, index) => {
               const isCorrect = opt === q.answer;
               return {
                 text: opt,
