@@ -2,7 +2,6 @@ const StudyMaterial = require("../models/StudyMaterial");
 const path = require("path");
 const fs = require("fs");
 
-// Get all published study materials
 exports.getAllPublishedMaterials = async (req, res) => {
   try {
     const {
@@ -16,7 +15,6 @@ exports.getAllPublishedMaterials = async (req, res) => {
       sortOrder = "desc",
     } = req.query;
 
-    // Build query - only published materials
     let query = { status: "published", isPublished: true };
 
     if (search) {

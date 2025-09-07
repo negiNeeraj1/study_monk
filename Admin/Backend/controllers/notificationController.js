@@ -1,6 +1,6 @@
-const Notification = require('../models/Notification');
-const User = require('../models/User');
-const SystemLog = require('../models/SystemLog');
+const Notification = require("../models/Notification");
+const User = require("../models/User");
+const SystemLog = require("../models/SystemLog");
 
 // Get all notifications with pagination and filters
 exports.getNotifications = async (req, res) => {
@@ -8,40 +8,40 @@ exports.getNotifications = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      type = '',
-      recipients = '',
-      active = '',
-      sortBy = 'createdAt',
-      sortOrder = 'desc'
+      type = "",
+      recipients = "",
+      active = "",
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = req.query;
 
     // Build query
     let query = {};
-    
-    if (type && type !== 'all') {
+
+    if (type && type !== "all") {
       query.type = type;
     }
-    
-    if (recipients && recipients !== 'all') {
+
+    if (recipients && recipients !== "all") {
       query.recipients = recipients;
     }
-    
-    if (active !== '') {
-      query.isActive = active === 'true';
+
+    if (active !== "") {
+      query.isActive = active === "true";
     }
 
     // Execute query with pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
     const [notifications, totalNotifications] = await Promise.all([
       Notification.find(query)
-        .populate('createdBy', 'name email')
+        .populate("createdBy", "name email")
         .sort(sortOptions)
         .skip(skip)
         .limit(parseInt(limit)),
-      Notification.countDocuments(query)
+      Notification.countDocuments(query),
     ]);
 
     res.json({
@@ -52,15 +52,15 @@ exports.getNotifications = async (req, res) => {
           current: parseInt(page),
           total: Math.ceil(totalNotifications / parseInt(limit)),
           count: totalNotifications,
-          limit: parseInt(limit)
-        }
-      }
+          limit: parseInt(limit),
+        },
+      },
     });
   } catch (error) {
-    console.error('Get notifications error:', error);
+    console.error("Get notifications error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notifications'
+      message: "Failed to fetch notifications",
     });
   }
 };
@@ -69,28 +69,28 @@ exports.getNotifications = async (req, res) => {
 exports.getNotificationById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const notification = await Notification.findById(id)
-      .populate('createdBy', 'name email')
-      .populate('specificUsers', 'name email')
-      .populate('readBy.user', 'name email');
-      
+      .populate("createdBy", "name email")
+      .populate("specificUsers", "name email")
+      .populate("readBy.user", "name email");
+
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found'
+        message: "Notification not found",
       });
     }
 
     res.json({
       success: true,
-      data: notification
+      data: notification,
     });
   } catch (error) {
-    console.error('Get notification by ID error:', error);
+    console.error("Get notification by ID error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification details'
+      message: "Failed to fetch notification details",
     });
   }
 };
@@ -107,22 +107,26 @@ exports.createNotification = async (req, res) => {
       specificUsers,
       scheduledFor,
       expiresAt,
-      actionButton
+      actionButton,
     } = req.body;
 
     // Validate required fields
     if (!title || !message) {
       return res.status(400).json({
         success: false,
-        message: 'Title and message are required'
+        message: "Title and message are required",
       });
     }
 
     // Validate specific users if recipients is 'specific'
-    if (recipients === 'specific' && (!specificUsers || specificUsers.length === 0)) {
+    if (
+      recipients === "specific" &&
+      (!specificUsers || specificUsers.length === 0)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Specific users must be selected when recipients is set to specific'
+        message:
+          "Specific users must be selected when recipients is set to specific",
       });
     }
 
@@ -133,22 +137,22 @@ exports.createNotification = async (req, res) => {
       type,
       priority,
       recipients,
-      specificUsers: recipients === 'specific' ? specificUsers : [],
+      specificUsers: recipients === "specific" ? specificUsers : [],
       scheduledFor: scheduledFor ? new Date(scheduledFor) : new Date(),
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       actionButton,
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
 
     // Calculate delivery stats based on recipients
     let targetUserCount = 0;
-    if (recipients === 'all') {
+    if (recipients === "all") {
       targetUserCount = await User.countDocuments();
-    } else if (recipients === 'students') {
-      targetUserCount = await User.countDocuments({ role: 'user' });
-    } else if (recipients === 'admins') {
-      targetUserCount = await User.countDocuments({ role: 'admin' });
-    } else if (recipients === 'specific') {
+    } else if (recipients === "students") {
+      targetUserCount = await User.countDocuments({ role: "user" });
+    } else if (recipients === "admins") {
+      targetUserCount = await User.countDocuments({ role: "admin" });
+    } else if (recipients === "specific") {
       targetUserCount = specificUsers.length;
     }
 
@@ -157,32 +161,74 @@ exports.createNotification = async (req, res) => {
     notification.deliveryStats.delivered = targetUserCount;
     await notification.save();
 
+    // Sync notification to main backend for student access
+    try {
+      const fetch = require("node-fetch");
+      const mainBackendUrl =
+        process.env.MAIN_BACKEND_URL || "http://localhost:5000";
+
+      const response = await fetch(`${mainBackendUrl}/api/notifications/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          message,
+          type,
+          priority,
+          recipients,
+          specificUsers: recipients === "specific" ? specificUsers : [],
+          scheduledFor: scheduledFor ? new Date(scheduledFor) : new Date(),
+          expiresAt: expiresAt ? new Date(expiresAt) : null,
+          actionButton,
+          createdBy: req.user.id,
+        }),
+      });
+
+      if (response.ok) {
+        console.log("✅ Notification synced to main backend successfully");
+      } else {
+        console.error(
+          "⚠️ Failed to sync notification to main backend:",
+          response.status,
+          response.statusText
+        );
+      }
+    } catch (syncError) {
+      console.error(
+        "⚠️ Failed to sync notification to main backend:",
+        syncError.message
+      );
+      // Don't fail the request if sync fails, just log the error
+    }
+
     // Log the action
     await SystemLog.create({
-      level: 'info',
+      level: "info",
       message: `Notification "${title}" created and sent to ${recipients}`,
-      module: 'notification-management',
-      action: 'create-notification',
+      module: "notification-management",
+      action: "create-notification",
       userId: req.user.id,
-      metadata: { 
-        notificationId: notification._id, 
-        recipients, 
+      metadata: {
+        notificationId: notification._id,
+        recipients,
         targetCount: targetUserCount,
         type,
-        priority
-      }
+        priority,
+      },
     });
 
     res.status(201).json({
       success: true,
       data: notification,
-      message: 'Notification created and sent successfully'
+      message: "Notification created and sent successfully",
     });
   } catch (error) {
-    console.error('Create notification error:', error);
+    console.error("Create notification error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create notification'
+      message: "Failed to create notification",
     });
   }
 };
@@ -198,7 +244,7 @@ exports.updateNotification = async (req, res) => {
     if (!existingNotification) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found'
+        message: "Notification not found",
       });
     }
 
@@ -207,28 +253,28 @@ exports.updateNotification = async (req, res) => {
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('createdBy', 'name email');
+    ).populate("createdBy", "name email");
 
     // Log the action
     await SystemLog.create({
-      level: 'info',
+      level: "info",
       message: `Notification "${updatedNotification.title}" updated by admin`,
-      module: 'notification-management',
-      action: 'update-notification',
+      module: "notification-management",
+      action: "update-notification",
       userId: req.user.id,
-      metadata: { notificationId: id, changes: Object.keys(updateData) }
+      metadata: { notificationId: id, changes: Object.keys(updateData) },
     });
 
     res.json({
       success: true,
       data: updatedNotification,
-      message: 'Notification updated successfully'
+      message: "Notification updated successfully",
     });
   } catch (error) {
-    console.error('Update notification error:', error);
+    console.error("Update notification error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update notification'
+      message: "Failed to update notification",
     });
   }
 };
@@ -237,13 +283,13 @@ exports.updateNotification = async (req, res) => {
 exports.deleteNotification = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Check if notification exists
     const notification = await Notification.findById(id);
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found'
+        message: "Notification not found",
       });
     }
 
@@ -252,23 +298,26 @@ exports.deleteNotification = async (req, res) => {
 
     // Log the action
     await SystemLog.create({
-      level: 'warn',
+      level: "warn",
       message: `Notification "${notification.title}" deleted by admin`,
-      module: 'notification-management',
-      action: 'delete-notification',
+      module: "notification-management",
+      action: "delete-notification",
       userId: req.user.id,
-      metadata: { deletedNotificationId: id, notificationTitle: notification.title }
+      metadata: {
+        deletedNotificationId: id,
+        notificationTitle: notification.title,
+      },
     });
 
     res.json({
       success: true,
-      message: 'Notification deleted successfully'
+      message: "Notification deleted successfully",
     });
   } catch (error) {
-    console.error('Delete notification error:', error);
+    console.error("Delete notification error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete notification'
+      message: "Failed to delete notification",
     });
   }
 };
@@ -282,7 +331,7 @@ exports.markAsRead = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized: user token missing or invalid'
+        message: "Unauthorized: user token missing or invalid",
       });
     }
 
@@ -290,21 +339,21 @@ exports.markAsRead = async (req, res) => {
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found'
+        message: "Notification not found",
       });
     }
 
     // Check if already read
     const alreadyRead = notification.readBy.some(
-      read => read.user.toString() === userId
+      (read) => read.user.toString() === userId
     );
 
     if (!alreadyRead) {
       notification.readBy.push({
         user: userId,
-        readAt: new Date()
+        readAt: new Date(),
       });
-      
+
       // Update read count
       notification.deliveryStats.read = notification.readBy.length;
       await notification.save();
@@ -312,13 +361,13 @@ exports.markAsRead = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Notification marked as read'
+      message: "Notification marked as read",
     });
   } catch (error) {
-    console.error('Mark as read error:', error);
+    console.error("Mark as read error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to mark notification as read'
+      message: "Failed to mark notification as read",
     });
   }
 };
@@ -326,19 +375,19 @@ exports.markAsRead = async (req, res) => {
 // Get notification analytics
 exports.getNotificationAnalytics = async (req, res) => {
   try {
-    const { period = '30d' } = req.query;
-    
+    const { period = "30d" } = req.query;
+
     let dateFilter;
     const now = new Date();
-    
+
     switch (period) {
-      case '7d':
+      case "7d":
         dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case '30d':
+      case "30d":
         dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case '90d':
+      case "90d":
         dateFilter = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -350,27 +399,27 @@ exports.getNotificationAnalytics = async (req, res) => {
       activeNotifications,
       notificationsByType,
       deliveryStats,
-      engagementStats
+      engagementStats,
     ] = await Promise.all([
       Notification.countDocuments({ createdAt: { $gte: dateFilter } }),
-      Notification.countDocuments({ 
+      Notification.countDocuments({
         createdAt: { $gte: dateFilter },
-        isActive: true 
+        isActive: true,
       }),
       Notification.aggregate([
         { $match: { createdAt: { $gte: dateFilter } } },
-        { $group: { _id: '$type', count: { $sum: 1 } } }
+        { $group: { _id: "$type", count: { $sum: 1 } } },
       ]),
       Notification.aggregate([
         { $match: { createdAt: { $gte: dateFilter } } },
         {
           $group: {
             _id: null,
-            totalSent: { $sum: '$deliveryStats.sent' },
-            totalDelivered: { $sum: '$deliveryStats.delivered' },
-            totalRead: { $sum: '$deliveryStats.read' }
-          }
-        }
+            totalSent: { $sum: "$deliveryStats.sent" },
+            totalDelivered: { $sum: "$deliveryStats.delivered" },
+            totalRead: { $sum: "$deliveryStats.read" },
+          },
+        },
       ]),
       Notification.aggregate([
         { $match: { createdAt: { $gte: dateFilter } } },
@@ -378,39 +427,48 @@ exports.getNotificationAnalytics = async (req, res) => {
           $addFields: {
             readRate: {
               $cond: [
-                { $eq: ['$deliveryStats.delivered', 0] },
+                { $eq: ["$deliveryStats.delivered", 0] },
                 0,
-                { $multiply: [
-                  { $divide: ['$deliveryStats.read', '$deliveryStats.delivered'] },
-                  100
-                ]}
-              ]
-            }
-          }
+                {
+                  $multiply: [
+                    {
+                      $divide: [
+                        "$deliveryStats.read",
+                        "$deliveryStats.delivered",
+                      ],
+                    },
+                    100,
+                  ],
+                },
+              ],
+            },
+          },
         },
         {
           $group: {
-            _id: '$type',
-            avgReadRate: { $avg: '$readRate' },
-            count: { $sum: 1 }
-          }
-        }
-      ])
+            _id: "$type",
+            avgReadRate: { $avg: "$readRate" },
+            count: { $sum: 1 },
+          },
+        },
+      ]),
     ]);
 
     const delivery = deliveryStats[0] || {
       totalSent: 0,
       totalDelivered: 0,
-      totalRead: 0
+      totalRead: 0,
     };
 
-    const deliveryRate = delivery.totalSent > 0 
-      ? Math.round((delivery.totalDelivered / delivery.totalSent) * 100)
-      : 0;
-    
-    const readRate = delivery.totalDelivered > 0 
-      ? Math.round((delivery.totalRead / delivery.totalDelivered) * 100)
-      : 0;
+    const deliveryRate =
+      delivery.totalSent > 0
+        ? Math.round((delivery.totalDelivered / delivery.totalSent) * 100)
+        : 0;
+
+    const readRate =
+      delivery.totalDelivered > 0
+        ? Math.round((delivery.totalRead / delivery.totalDelivered) * 100)
+        : 0;
 
     res.json({
       success: true,
@@ -419,25 +477,25 @@ exports.getNotificationAnalytics = async (req, res) => {
           total: totalNotifications,
           active: activeNotifications,
           deliveryRate,
-          readRate
+          readRate,
         },
         byType: notificationsByType.reduce((acc, item) => {
           acc[item._id] = item.count;
           return acc;
         }, {}),
-        engagement: engagementStats.map(stat => ({
+        engagement: engagementStats.map((stat) => ({
           type: stat._id,
           averageReadRate: Math.round(stat.avgReadRate || 0),
-          count: stat.count
+          count: stat.count,
         })),
-        deliveryStats: delivery
-      }
+        deliveryStats: delivery,
+      },
     });
   } catch (error) {
-    console.error('Get notification analytics error:', error);
+    console.error("Get notification analytics error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch notification analytics'
+      message: "Failed to fetch notification analytics",
     });
   }
 };
@@ -449,7 +507,7 @@ exports.getUserNotifications = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized: user token missing or invalid'
+        message: "Unauthorized: user token missing or invalid",
       });
     }
     const { page = 1, limit = 10, unreadOnly = false } = req.query;
@@ -462,32 +520,39 @@ exports.getUserNotifications = async (req, res) => {
       $or: [
         { expiresAt: { $exists: false } },
         { expiresAt: null },
-        { expiresAt: { $gt: now } }
+        { expiresAt: { $gt: now } },
       ],
       $or: [
-        { recipients: 'all' },
-        { recipients: 'students', $and: [{ /* user role check */ }] },
-        { recipients: 'specific', specificUsers: userId }
-      ]
+        { recipients: "all" },
+        {
+          recipients: "students",
+          $and: [
+            {
+              /* user role check */
+            },
+          ],
+        },
+        { recipients: "specific", specificUsers: userId },
+      ],
     };
 
     // Get user role for filtering
-    const user = await User.findById(userId).select('role');
+    const user = await User.findById(userId).select("role");
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid user'
+        message: "Invalid user",
       });
     }
-    if (user.role === 'user') {
-      query.$or[1].recipients = 'students';
+    if (user.role === "user") {
+      query.$or[1].recipients = "students";
     } else {
-      query.$or[1] = { recipients: 'admins' };
+      query.$or[1] = { recipients: "admins" };
     }
 
     // Filter for unread only
-    if (unreadOnly === 'true') {
-      query['readBy.user'] = { $ne: userId };
+    if (unreadOnly === "true") {
+      query["readBy.user"] = { $ne: userId };
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -497,17 +562,17 @@ exports.getUserNotifications = async (req, res) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      Notification.countDocuments(query)
+      Notification.countDocuments(query),
     ]);
 
     // Add isRead flag for current user
-    const notificationsWithReadStatus = notifications.map(notification => {
+    const notificationsWithReadStatus = notifications.map((notification) => {
       const isRead = Array.isArray(notification.readBy)
-        ? notification.readBy.some(read => read.user.toString() === userId)
+        ? notification.readBy.some((read) => read.user.toString() === userId)
         : false;
       return {
         ...notification.toObject(),
-        isRead
+        isRead,
       };
     });
 
@@ -519,15 +584,155 @@ exports.getUserNotifications = async (req, res) => {
           current: parseInt(page),
           total: Math.ceil(totalNotifications / parseInt(limit)),
           count: totalNotifications,
-          limit: parseInt(limit)
-        }
-      }
+          limit: parseInt(limit),
+        },
+      },
     });
   } catch (error) {
-    console.error('Get user notifications error:', error);
+    console.error("Get user notifications error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch user notifications'
+      message: "Failed to fetch user notifications",
+    });
+  }
+};
+
+// Get unread notification count for user
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: user token missing or invalid",
+      });
+    }
+
+    const now = new Date();
+    let query = {
+      isActive: true,
+      scheduledFor: { $lte: now },
+      $or: [
+        { expiresAt: { $exists: false } },
+        { expiresAt: null },
+        { expiresAt: { $gt: now } },
+      ],
+      $or: [
+        { recipients: "all" },
+        {
+          recipients: "students",
+          $and: [
+            {
+              /* user role check */
+            },
+          ],
+        },
+        { recipients: "specific", specificUsers: userId },
+      ],
+      "readBy.user": { $ne: userId },
+    };
+
+    // Get user role for filtering
+    const user = await User.findById(userId).select("role");
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid user",
+      });
+    }
+    if (user.role === "user") {
+      query.$or[1].recipients = "students";
+    } else {
+      query.$or[1] = { recipients: "admins" };
+    }
+
+    const count = await Notification.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: { count },
+    });
+  } catch (error) {
+    console.error("Get unread count error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch unread count",
+    });
+  }
+};
+
+// Mark all notifications as read for user
+exports.markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: user token missing or invalid",
+      });
+    }
+
+    const now = new Date();
+    let query = {
+      isActive: true,
+      scheduledFor: { $lte: now },
+      $or: [
+        { expiresAt: { $exists: false } },
+        { expiresAt: null },
+        { expiresAt: { $gt: now } },
+      ],
+      $or: [
+        { recipients: "all" },
+        {
+          recipients: "students",
+          $and: [
+            {
+              /* user role check */
+            },
+          ],
+        },
+        { recipients: "specific", specificUsers: userId },
+      ],
+      "readBy.user": { $ne: userId },
+    };
+
+    // Get user role for filtering
+    const user = await User.findById(userId).select("role");
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid user",
+      });
+    }
+    if (user.role === "user") {
+      query.$or[1].recipients = "students";
+    } else {
+      query.$or[1] = { recipients: "admins" };
+    }
+
+    // Find all unread notifications
+    const notifications = await Notification.find(query);
+
+    // Mark each as read
+    for (const notification of notifications) {
+      notification.readBy.push({
+        user: userId,
+        readAt: new Date(),
+      });
+      notification.deliveryStats.read = notification.readBy.length;
+      await notification.save();
+    }
+
+    res.json({
+      success: true,
+      message: `Marked ${notifications.length} notifications as read`,
+      data: { count: notifications.length },
+    });
+  } catch (error) {
+    console.error("Mark all as read error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to mark all notifications as read",
     });
   }
 };

@@ -1,32 +1,11 @@
-// Load environment variables first
 require("dotenv").config();
 
-// Set default environment variables if not provided
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = "your_super_secret_jwt_key_for_study_ai_app_2024";
 }
 if (!process.env.MONGODB_URI && !process.env.MONGO_URI) {
   process.env.MONGODB_URI = "mongodb://localhost:27017/study-ai";
 }
-
-// Log MongoDB connection details
-console.log("MongoDB Connection Details:");
-console.log("- MONGODB_URI:", process.env.MONGODB_URI ? "SET" : "NOT SET");
-console.log("- MONGO_URI:", process.env.MONGO_URI ? "SET" : "NOT SET");
-console.log(
-  "- GEMINI_API_KEY:",
-  process.env.GEMINI_API_KEY ? "SET" : "NOT SET"
-);
-console.log(
-  "- GOOGLE_AI_API_KEY:",
-  process.env.GOOGLE_AI_API_KEY ? "SET" : "NOT SET"
-);
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "NOT SET");
-console.log(
-  "MONGODB_URI:",
-  process.env.MONGODB_URI || process.env.MONGO_URI ? "SET" : "NOT SET"
-);
 
 const express = require("express");
 const cors = require("cors");
@@ -48,6 +27,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const userRoutes = require("./routes/userRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const userNotificationRoutes = require("./routes/userNotificationRoutes");
 const quizAttemptRoutes = require("./routes/quizAttemptRoutes");
 
 // Import existing backend routes (if needed)
@@ -141,8 +121,11 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/admin/users", userRoutes);
 app.use("/api/admin/quizzes", quizRoutes);
 app.use("/api/admin/study-materials", adminStudyMaterialRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications/admin", notificationRoutes);
 app.use("/api/quiz-attempts", quizAttemptRoutes);
+
+// User Notification Routes (no admin auth required)
+app.use("/api/notifications/user", userNotificationRoutes);
 
 // Public Study Material Routes (for user access)
 app.use("/api/study-materials", publicStudyMaterialRoutes);
@@ -267,7 +250,7 @@ const startServer = async () => {
     console.log("✅ Database connection ready");
 
     // Start server
-    const PORT = process.env.PORT || 5001;
+    const PORT = process.env.PORT || 5002;
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Admin Backend Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
