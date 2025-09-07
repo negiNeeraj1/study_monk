@@ -79,6 +79,12 @@ router.get("/admin/analytics", requireAdmin, notificationController.getAnalytics
 // ===== HEALTH CHECK ROUTE =====
 
 /**
+ * POST /api/notifications/sync
+ * Sync notification from admin backend (internal use)
+ */
+router.post("/sync", notificationController.syncNotification);
+
+/**
  * GET /api/notifications/health
  * Check notification service health
  */
