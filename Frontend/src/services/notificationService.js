@@ -1,10 +1,29 @@
 const NOTIFICATION_API_BASE =
   import.meta.env.VITE_API_BASE_URL || "https://aistudy-xfxe.onrender.com/api";
 
+// Simple in-memory cache to reduce rate-limit hits
+const cacheStore = new Map();
+const setCache = (key, value, ttlMs) => {
+  cacheStore.set(key, { value, expires: Date.now() + ttlMs });
+};
+const getCache = (key) => {
+  const entry = cacheStore.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expires) {
+    cacheStore.delete(key);
+    return null;
+  }
+  return entry.value;
+};
+
 class NotificationService {
   // Get user notifications with improved error handling
   async getUserNotifications(params = {}) {
     try {
+      const cacheKey = `notifications:${JSON.stringify(params)}`;
+      const cached = getCache(cacheKey);
+      if (cached) return cached;
+
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("No authentication token found");
@@ -25,11 +44,22 @@ class NotificationService {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Back off for 60s on rate limit
+          setCache(
+            cacheKey,
+            { success: true, data: { notifications: [] } },
+            60000
+          );
+          throw new Error("Too many requests. Limit: 50 per 15 minutes.");
+        }
         throw new Error(
           data.error || `Server responded with ${response.status}`
         );
       }
 
+      // Cache for 30s
+      setCache(cacheKey, data, 30000);
       return data;
     } catch (error) {
       console.error("🚨 Notification service error:", error);
@@ -106,6 +136,10 @@ class NotificationService {
   // Get unread notification count (optimized endpoint)
   async getUnreadCount() {
     try {
+      const cacheKey = "notifications:unread-count";
+      const cached = getCache(cacheKey);
+      if (cached !== null && cached !== undefined) return cached;
+
       const token = localStorage.getItem("token");
       if (!token) {
         return 0;
@@ -122,11 +156,18 @@ class NotificationService {
       );
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Cache last known value (default 0) for 60s
+          setCache(cacheKey, 0, 60000);
+          return 0;
+        }
         return 0;
       }
 
       const data = await response.json();
-      return data.success ? data.data.count : 0;
+      const value = data.success ? data.data.count : 0;
+      setCache(cacheKey, value, 15000);
+      return value;
     } catch (error) {
       console.error("🚨 Unread count error:", error);
       return 0;

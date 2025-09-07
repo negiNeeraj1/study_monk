@@ -1,7 +1,7 @@
 // Note: this service uses native fetch, no api client import needed
+import { getApiUrl } from "../config/api";
 
-const QUIZ_API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://aistudy-xfxe.onrender.com/api";
+const QUIZ_API_BASE = getApiUrl("admin");
 
 class QuizService {
   // Get all published quizzes for students
@@ -17,7 +17,6 @@ class QuizService {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -39,7 +38,6 @@ class QuizService {
       const response = await fetch(`${QUIZ_API_BASE}/admin/quizzes/${quizId}`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 

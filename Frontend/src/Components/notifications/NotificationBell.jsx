@@ -19,13 +19,13 @@ const NotificationBell = () => {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    loadNotifications();
+    // Initial unread count fetch only
     loadUnreadCount();
 
-    // Refresh every 30 seconds
+    // Refresh unread count every 60 seconds to avoid rate limits
     const interval = setInterval(() => {
       loadUnreadCount();
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -57,7 +57,10 @@ const NotificationBell = () => {
         setNotifications(response.data.notifications || []);
       }
     } catch (error) {
-      console.error("Failed to load notifications:", error);
+      // Suppress noisy logs on rate limit; still show other errors
+      if (!String(error?.message || "").includes("Too many requests")) {
+        console.error("Failed to load notifications:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -125,7 +128,14 @@ const NotificationBell = () => {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={async () => {
+          const next = !isOpen;
+          setIsOpen(next);
+          if (next) {
+            // Load notifications on open instead of on mount to reduce calls
+            await loadNotifications();
+          }
+        }}
         className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
       >
         <Bell className="h-6 w-6" />

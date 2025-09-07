@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Download, Star, Crown, BookOpen, Filter } from "lucide-react";
+import { Search, Download, Filter } from "lucide-react";
 import Card from "../Components/ui/Card";
-import PremiumNotes from "../images/PreiumNotes.jpg";
-import FullPackage from "../images/FullPackage.jpg";
-import QuizBanner from "../images/QuizBanner.jpg";
 
 // Import study material components
 import CategoryFilter from "../Components/study/CategoryFilter";
@@ -29,34 +26,6 @@ const StudyMaterial = () => {
     searchMaterials,
     downloadMaterial,
   } = useStudyMaterial();
-
-  const premiumFeatures = [
-    {
-      title: "Premium Study Notes",
-      oldPrice: "$49.99",
-      price: "$29.99",
-      features: [
-        "Downloadable PDF notes",
-        "HD Quality diagrams",
-        "Practice worksheets",
-      ],
-      icon: <Crown className="w-6 h-6 text-yellow-500" />,
-      src: PremiumNotes,
-    },
-
-    {
-      title: "Complete Package",
-      oldPrice: "$99.99",
-      price: "$69.99",
-      features: [
-        "1-on-1 mentoring",
-        "Live doubt clearing",
-        "Custom study plan",
-      ],
-      icon: <BookOpen className="w-6 h-6 text-yellow-500" />,
-      src: FullPackage,
-    },
-  ];
 
   // Handle search
   const handleSearch = (query) => {
@@ -151,53 +120,6 @@ const StudyMaterial = () => {
             onDownload={handleDownload}
             isLoading={isLoading}
           />
-        </div>
-
-        {/* Premium Features Section */}
-        <h2 className="text-3xl font-bold mb-8">Premium Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {premiumFeatures.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-shadow">
-                <div className="relative h-48 overflow-hidden rounded-t-xl">
-                  <img
-                    src={feature.src}
-                    alt={feature.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <p className="text-sm line-through opacity-75">
-                      {feature.oldPrice}
-                    </p>
-                    <p className="text-2xl font-bold">{feature.price}</p>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    {feature.icon}
-                    <h3 className="text-xl font-semibold">{feature.title}</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {feature.features.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <Download className="w-4 h-4 text-blue-600" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <button className="w-full mt-6 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Get Started
-                  </button>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
         </div>
       </div>
 
