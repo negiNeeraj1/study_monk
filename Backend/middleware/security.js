@@ -65,6 +65,7 @@ const corsOptions = {
       "http://localhost:3000", // Main frontend
       "http://localhost:3001", // Admin frontend
       "http://localhost:5173", // Vite dev server
+      "https://study-monk-frontend.onrender.com", // Deployed frontend
       process.env.FRONTEND_URL,
       process.env.ADMIN_URL,
     ].filter(Boolean);
