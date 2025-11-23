@@ -79,7 +79,11 @@ const connectDB = async () => {
 };
 
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || "localhost";
+// Bind to 0.0.0.0 for cloud platforms (Render, Heroku, etc.)
+// This allows the server to accept connections from any network interface
+// Default to 0.0.0.0 when PORT is provided by platform (cloud deployment)
+// or in production environment, otherwise use localhost for local development
+const HOST = process.env.HOST || (process.env.PORT ? "0.0.0.0" : process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost");
 
 applySecurityMiddleware(app);
 
