@@ -47,17 +47,19 @@ Backend/
    ```
 
 3. **Environment Configuration**
-   ```bash
-   cp env.example .env
-   ```
    
-   Edit `.env` file with your configuration:
+   Create a `.env` file in the Backend directory with the following:
    ```env
    NODE_ENV=development
    PORT=5000
    MONGODB_URI=mongodb://localhost:27017/study-ai
    JWT_SECRET=your_super_secret_jwt_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    ```
+   
+   **⚠️ IMPORTANT**: You must get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey) and add it to your `.env` file. Without this key, AI features (quiz generation, chat assistant) will not work.
+   
+   See `SETUP_GUIDE.md` for detailed setup instructions.
 
 4. **Database Setup**
    ```bash
