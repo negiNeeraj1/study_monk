@@ -2,12 +2,12 @@
 export const API_CONFIG = {
   // Admin Backend API URL - where study materials and quizzes are managed
   ADMIN_API_URL:
-    import.meta.env.VITE_ADMIN_API_URL || "http://localhost:5001/api",
+    import.meta.env.VITE_ADMIN_API_URL || "https://study-monk-backend.onrender.com/api",
 
   // Main Backend API URL - for AI features and other services
   MAIN_API_URL:
     import.meta.env.VITE_API_BASE_URL ||
-    "https://aistudy-xfxe.onrender.com/api",
+    "https://study-monk-backend.onrender.com/api",
 
   // App Configuration
   APP_NAME: import.meta.env.VITE_APP_NAME || "AI Study Platform",

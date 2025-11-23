@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     port: 3000, // Client Frontend on port 3000
     proxy: {
-      "/api": "http://localhost:5000", // Local Backend for development
+      "/api": "https://study-monk-backend.onrender.com", // Deployed Backend
     },
   },
   base: "/", // Changed for Vercel compatibility

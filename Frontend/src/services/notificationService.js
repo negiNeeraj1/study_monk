@@ -1,5 +1,5 @@
 const NOTIFICATION_API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "https://study-monk-backend.onrender.com/api";
 
 // Simple in-memory cache to reduce rate-limit hits
 const cacheStore = new Map();

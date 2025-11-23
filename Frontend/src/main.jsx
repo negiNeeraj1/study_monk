@@ -13,7 +13,7 @@ if (import.meta.env.DEV) {
   console.info("🛠️ Running in DEVELOPMENT mode");
   console.info(
     "📡 API URL:",
-    import.meta.env.VITE_API_URL || "https://aistudy-xfxe.onrender.com/api"
+    import.meta.env.VITE_API_URL || "https://study-monk-backend.onrender.com/api"
   );
 }
 

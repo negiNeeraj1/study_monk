@@ -1,7 +1,7 @@
 // Quiz Attempt Service for managing quiz history and attempts
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://aistudy-xfxe.onrender.com/api";
+  import.meta.env.VITE_API_BASE_URL || "https://study-monk-backend.onrender.com/api";
 
 class QuizAttemptService {
   // Get authentication headers
