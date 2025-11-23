@@ -82,6 +82,29 @@ const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "localhost";
 
 applySecurityMiddleware(app);
+
+// Root route handler for deployment platform health checks (Render, Heroku, etc.)
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: "ok",
+    message: "Study Monk Backend API is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+    version: "1.0.0",
+    api: {
+      baseUrl: "/api",
+      health: "/api/health",
+      docs: "See README.md for API documentation",
+    },
+  });
+});
+
+// Also handle HEAD requests for health checks
+app.head("/", (req, res) => {
+  res.status(200).end();
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
