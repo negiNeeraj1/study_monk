@@ -53,7 +53,7 @@ const Login = () => {
       // Role-based redirection based on actual user role from backend
       if (result.role === "admin" || result.role === "super_admin") {
         // Redirect admin to admin panel
-        window.location.href = "http://localhost:3001";
+        window.location.href = "https://study-monk-admin-frontend.onrender.com";
       } else if (result.role === "user" || result.role === "instructor") {
         // Redirect regular user to user dashboard
         navigate("/dashboard");

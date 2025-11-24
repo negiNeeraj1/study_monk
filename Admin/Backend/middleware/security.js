@@ -204,9 +204,10 @@ exports.adminCors = {
     // In production, replace with your actual admin frontend domain
     const allowedOrigins = [
       "http://localhost:3000",
-      "http://localhost:3001",
+      "http://localhost:3001", 
       "http://localhost:5173",
       "http://localhost:4173",
+      "https://study-monk-admin-frontend.onrender.com", // Deployed admin frontend
       process.env.ADMIN_FRONTEND_URL,
     ].filter(Boolean);
 

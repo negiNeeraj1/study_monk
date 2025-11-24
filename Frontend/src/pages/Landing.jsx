@@ -462,13 +462,13 @@ const StudyAILanding = () => {
                   </p>
                   <div className="space-y-3">
                     <a
-                      href="http://localhost:3001/signup"
+                      href="https://study-monk-admin-frontend.onrender.com/signup"
                       className="block w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-300"
                     >
                       Admin Registration
                     </a>
                     <a
-                      href="http://localhost:3001/login"
+                      href="https://study-monk-admin-frontend.onrender.com/login"
                       className="block w-full px-6 py-3 bg-white text-purple-600 border-2 border-purple-200 rounded-xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all duration-300"
                     >
                       Admin Login

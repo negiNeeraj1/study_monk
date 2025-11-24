@@ -117,7 +117,7 @@ const ProtectedRoute = ({
   if (redirectToAdmin && canAccessAdmin() && requiredRole === "user") {
     // Check if we're in development or production
     const isDevelopment = process.env.NODE_ENV === "development";
-    const adminUrl = isDevelopment ? "http://localhost:3001" : "/admin";
+    const adminUrl = isDevelopment ? "http://localhost:3001" : "https://study-monk-admin-frontend.onrender.com";
 
     // Use window.location for external redirects
     if (isDevelopment) {

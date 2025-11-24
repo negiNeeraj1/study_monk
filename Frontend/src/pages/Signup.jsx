@@ -72,7 +72,7 @@ const Signup = () => {
           form.userType === "admin"
         ) {
           // Redirect admin to admin panel
-          window.location.href = "http://localhost:3001";
+          window.location.href = "https://study-monk-admin-frontend.onrender.com";
         } else if (
           result.user &&
           result.user.role === "user" &&
