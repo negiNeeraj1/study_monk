@@ -1,5 +1,5 @@
 // Admin Panel API Service
-const API_BASE_URL = "http://localhost:5001/api";
+const API_BASE_URL = "https://study-monk-admin-backend.onrender.com/api";
 
 class AdminAPI {
   constructor() {

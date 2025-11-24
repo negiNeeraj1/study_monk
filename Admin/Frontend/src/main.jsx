@@ -9,7 +9,7 @@ if (import.meta.env.DEV) {
   console.info("🛠️ Running in DEVELOPMENT mode");
   console.info(
     "📡 Admin API URL:",
-    import.meta.env.VITE_API_URL || "http://localhost:5001/api"
+    import.meta.env.VITE_API_URL || "https://study-monk-admin-backend.onrender.com/api"
   );
 
   // Unregister any existing service workers in development

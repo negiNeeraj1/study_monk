@@ -9,7 +9,7 @@ export default defineConfig({
     host: "localhost",
     strictPort: true,
     proxy: {
-      "/api": "http://localhost:5001", // Admin Backend
+      "/api": "https://study-monk-admin-backend.onrender.com", // Deployed Admin Backend
     },
     hmr: {
       host: "localhost",

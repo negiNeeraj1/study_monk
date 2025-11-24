@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Verify token with backend
-      const response = await fetch("http://localhost:5001/api/auth/verify", {
+      const response = await fetch("https://study-monk-admin-backend.onrender.com/api/auth/verify", {
         headers: {
           Authorization: `Bearer ${storedToken}`,
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5001/api/auth/login", {
+      const response = await fetch("https://study-monk-admin-backend.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, userType: "admin" }),
