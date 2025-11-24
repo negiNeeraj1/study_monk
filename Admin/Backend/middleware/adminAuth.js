@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../../Backend/models/User");
+const User = require("../models/User");
 const SystemLog = require("../models/SystemLog");
 
 // Database health check middleware

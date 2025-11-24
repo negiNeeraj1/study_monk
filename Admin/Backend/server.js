@@ -30,9 +30,9 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const userNotificationRoutes = require("./routes/userNotificationRoutes");
 const quizAttemptRoutes = require("./routes/quizAttemptRoutes");
 
-// Import existing backend routes (if needed)
-const aiRoutes = require("../../Backend/routes/aiRoutes");
-const studyMaterialRoutes = require("../../Backend/routes/studyMaterialRoutes");
+// Comment out cross-dependencies for standalone deployment
+// const aiRoutes = require("../../Backend/routes/aiRoutes");
+// const studyMaterialRoutes = require("../../Backend/routes/studyMaterialRoutes");
 
 // Import new admin study material routes
 const adminStudyMaterialRoutes = require("./routes/studyMaterialRoutes");
@@ -130,8 +130,8 @@ app.use("/api/notifications/user", userNotificationRoutes);
 // Public Study Material Routes (for user access)
 app.use("/api/study-materials", publicStudyMaterialRoutes);
 
-// Existing Backend Routes (for compatibility)
-app.use("/api/ai", aiRoutes);
+// Comment out cross-dependency routes for standalone deployment
+// app.use("/api/ai", aiRoutes);
 
 // API documentation route
 app.get("/api/docs", (req, res) => {
