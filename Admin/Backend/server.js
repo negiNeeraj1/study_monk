@@ -111,10 +111,10 @@ app.get("/api/health/db", async (req, res) => {
 // API Routes
 
 // Import admin auth routes
-const adminAuthRoutes = require("./routes/adminAuthRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 // Authentication Routes (for both admin and user)
-app.use("/api/auth", adminAuthRoutes);
+app.use("/api/auth", authRoutes);
 
 // Admin Panel Routes
 app.use("/api/admin", adminRoutes);

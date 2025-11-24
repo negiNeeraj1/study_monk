@@ -468,7 +468,7 @@ const StudyAILanding = () => {
                       Admin Registration
                     </a>
                     <a
-                      href="https://study-monk-admin-frontend.onrender.com/login"
+                      href="https://study-monk-admin-frontend.onrender.com/"
                       className="block w-full px-6 py-3 bg-white text-purple-600 border-2 border-purple-200 rounded-xl font-semibold hover:bg-purple-50 hover:border-purple-300 transition-all duration-300"
                     >
                       Admin Login
